@@ -1,0 +1,12 @@
+{
+  "tasks": {
+    "dev": "deno run -A --watch main.ts",
+    "start": "deno run -A main.ts",
+    "build": "deno compile -A --target x86_64-pc-windows-msvc main.ts"
+  },
+  "imports": {
+    "@oak/oak": "jsr:@oak/oak@^17.1.6",
+    "@std/assert": "jsr:@std/assert@1",
+    "@std/path": "jsr:@std/path@^1.0.8"
+  }
+}
