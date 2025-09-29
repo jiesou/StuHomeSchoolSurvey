@@ -1,7 +1,7 @@
 {
   "tasks": {
     "dev": "deno run -A --watch main.ts",
-    "start": "deno run -A main.ts",
+    "start": "deno run -A --env main.ts",
     "build": "deno compile -A --target x86_64-pc-windows-msvc main.ts"
   },
   "imports": {

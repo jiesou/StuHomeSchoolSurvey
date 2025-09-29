@@ -1,0 +1,44 @@
+{
+	"name": "StuHomeSchoolSurvey",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	"features": {
+		// "ghcr.io/devcontainers/features/python:1": {}
+	},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "sudo apt update && sudo apt install python3-venv -y",
+
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"justjavac.vscode-deno-extensionpack",
+				"vue.volar"
+			]
+		}
+	},
+
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+	// "runArgs": [
+	// 	"--userns=keep-id",
+	// 	"--security-opt=label=disable"
+	// ],
+	"runArgs": [
+		"--network",
+		"host" // for API get ip to communicate with the esp32
+		// dont use port-forwarding
+	],
+	// "containerUser": "node",
+	// "updateRemoteUserUID": true
+	"privileged": true
+	// "runArgs": [
+	// ],
+}
