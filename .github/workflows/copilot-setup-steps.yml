@@ -11,6 +11,16 @@ on:
     paths:
       - .github/workflows/copilot-setup-steps.yml
 
+services:
+  db:
+    image: postgres:18
+    env:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: surveysys
+    ports:
+      - 5432:5432
+
 jobs:
   # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
   copilot-setup-steps:
@@ -40,3 +50,7 @@ jobs:
           deno install
           cd ../server
           deno install --allow-scripts=npm:core-js
+
+      - name: Set DATABASE_URL
+        run: |
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/surveysys" >> $GITHUB_ENV
