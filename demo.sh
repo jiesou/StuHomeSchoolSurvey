@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# 家校互联问卷系统演示脚本
+
+echo "=== 家校互联问卷系统演示 ==="
+echo ""
+echo "项目结构："
+echo "- 后端：Deno + Oak + Prisma + PostgreSQL"
+echo "- 前端：Vue3 + TypeScript + Ant Design Vue"
+echo "- 数据库：PostgreSQL with Prisma ORM"
+echo ""
+
+echo "主要功能："
+echo "1. 管理端 (http://localhost:5173/admin)"
+echo "   - 问卷列表：查看所有问卷，支持分页"
+echo "   - 创建问卷：可以添加星级评分和文本输入问题"
+echo "   - 查看结果：查看问卷提交结果，支持分页"
+echo ""
+
+echo "2. 答题端 (http://localhost:5173/survey/:id)"
+echo "   - 家长/学生可直接访问问卷链接"
+echo "   - 只需输入姓名和学号即可答题"
+echo "   - 每人每份问卷只能提交一次"
+echo ""
+
+echo "技术特点："
+echo "- 类型安全：前后端共享 TypeScript 类型"
+echo "- 数据完整性：数据库外键约束和唯一性约束"
+echo "- 分页支持：列表和结果页面都支持分页"
+echo "- 错误处理：完整的错误处理和用户提示"
+echo "- 响应式设计：移动端友好"
+echo ""
+
+echo "数据库设计："
+echo "- User: 用户表（自动创建，支持学生和老师角色）"
+echo "- Survey: 问卷表（包含学年、学期、周次等属性）"
+echo "- Question: 问题表（支持不同类型问题配置）"
+echo "- Answer: 答案表（统一存储为字符串）"
+echo "- Submission: 提交记录表（确保唯一性约束）"
+echo ""
+
+echo "API 端点："
+echo "- GET  /api/surveys - 获取问卷列表"
+echo "- POST /api/surveys - 创建问卷"
+echo "- GET  /api/surveys/:id - 获取问卷详情"
+echo "- GET  /api/surveys/:id/results - 获取问卷结果"
+echo "- POST /api/submissions - 提交问卷答案"
+echo "- GET  /health - 健康检查"
+echo ""
+
+echo "启动说明："
+echo "1. 后端：cd server && deno task dev"
+echo "2. 前端：cd client && npm run dev"
+echo "3. 数据库：需要配置 PostgreSQL 并运行 npx prisma db push"
+echo ""
+
+echo "访问地址："
+echo "- 前端：http://localhost:5173"
+echo "- 后端：http://localhost:8000"
+echo "- 管理端：http://localhost:5173/admin"
+echo ""

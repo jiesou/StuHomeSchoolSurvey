@@ -51,14 +51,20 @@ const PORT = 8000;
 async function startServer() {
   console.log("正在启动服务器...");
   
-  // 测试数据库连接
-  const dbConnected = await testConnection();
-  if (!dbConnected) {
-    console.error("数据库连接失败，服务器启动中止");
-    Deno.exit(1);
-  }
+  // 检查是否使用模拟数据
+  const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true" || true;
   
-  console.log("数据库连接成功");
+  if (!USE_MOCK_DATA) {
+    // 测试数据库连接
+    const dbConnected = await testConnection();
+    if (!dbConnected) {
+      console.error("数据库连接失败，服务器启动中止");
+      Deno.exit(1);
+    }
+    console.log("数据库连接成功");
+  } else {
+    console.log("使用模拟数据模式");
+  }
   
   // 监听端口
   console.log(`服务器运行在 http://localhost:${PORT}`);
