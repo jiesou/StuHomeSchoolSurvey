@@ -24,3 +24,12 @@ dist-ssr
 *.sw?
 
 .env
+
+# Server specific
+server/node_modules
+server/prisma/generated
+server/deno.lock
+
+# Client specific  
+client/node_modules
+client/dist

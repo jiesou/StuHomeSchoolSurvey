@@ -2,9 +2,22 @@
   "tasks": {
     "dev": "deno run -A --watch main.ts",
     "start": "deno run -A --env main.ts",
-    "build": "deno compile -A --target x86_64-pc-windows-msvc main.ts"
+    "build": "deno compile -A --target x86_64-pc-windows-msvc main.ts",
+    "db:generate": "deno run -A --env=.env npm:prisma generate --schema=./prisma/schema.prisma",
+    "db:migrate": "deno run -A --env=.env npm:prisma migrate dev --schema=./prisma/schema.prisma",
+    "db:reset": "deno run -A --env=.env npm:prisma migrate reset --schema=./prisma/schema.prisma --force"
   },
   "imports": {
-    "@oak/oak": "jsr:@oak/oak@^17.1.6"
+    "@oak/oak": "jsr:@oak/oak@^17.1.6",
+    "@oak/oak/cors": "jsr:@oak/oak@^17.1.6/cors",
+    "@std/log": "jsr:@std/log@^0.224.9",
+    "@std/assert": "jsr:@std/assert@^1.0.9",
+    "@std/uuid": "jsr:@std/uuid@^1.0.4",
+    "@prisma/client": "npm:@prisma/client@^5.22.0",
+    "zod": "npm:zod@^3.23.8"
+  },
+  "nodeModulesDir": "auto",
+  "compilerOptions": {
+    "strict": false
   }
 }

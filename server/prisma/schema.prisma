@@ -1,16 +1,76 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "./generated"
-  runtime = "deno"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String @id @default(uuid())
+  name      String
+  idNumber  String @map("id_number")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  submissions Submission[]
+  
+  @@map("users")
+}
+
+model Survey {
+  id          String @id @default(uuid())
+  title       String
+  description String?
+  year        Int
+  semester    Int // 1 for 上学期, 2 for 下学期
+  week        Int
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  questions   Question[]
+  submissions Submission[]
+  
+  @@map("surveys")
+}
+
+model Question {
+  id          String @id @default(uuid())
+  surveyId    String @map("survey_id")
+  description String?
+  config      Json   // Contains type (star/input) and other config
+  orderIndex  Int    @map("order_index") // For question ordering
+  
+  survey      Survey @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  answers     Answer[]
+  
+  @@map("questions")
+}
+
+model Submission {
+  id       String @id @default(uuid())
+  surveyId String @map("survey_id")
+  userId   String @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  survey   Survey @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers  Answer[]
+  
+  @@unique([surveyId, userId])
+  @@map("submissions")
+}
+
+model Answer {
+  id           String @id @default(uuid())
+  submissionId String @map("submission_id")
+  questionId   String @map("question_id")
+  value        String // JSON string containing the answer value
+  
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  question     Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  @@map("answers")
 }
