@@ -85,7 +85,14 @@ surveyRoutes.get("/:id", async (ctx) => {
 // Create new survey
 surveyRoutes.post("/", async (ctx) => {
   const prisma = getPrismaClient();
-  const body = await ctx.request.body({ type: "json" }).value as CreateSurveyRequest;
+  
+  if (!ctx.request.hasBody) {
+    ctx.response.status = 400;
+    ctx.response.body = { error: "Request body is required" };
+    return;
+  }
+  
+  const body = await ctx.request.body.json() as CreateSurveyRequest;
 
   // Validate request
   if (!body.title || !body.questions || body.questions.length === 0) {
@@ -131,7 +138,14 @@ surveyRoutes.post("/", async (ctx) => {
 surveyRoutes.post("/:id/submit", async (ctx) => {
   const prisma = getPrismaClient();
   const { id: surveyId } = ctx.params;
-  const body = await ctx.request.body({ type: "json" }).value as SubmitSurveyRequest;
+  
+  if (!ctx.request.hasBody) {
+    ctx.response.status = 400;
+    ctx.response.body = { error: "Request body is required" };
+    return;
+  }
+  
+  const body = await ctx.request.body.json() as SubmitSurveyRequest;
 
   // Validate request
   if (!body.name || !body.idNumber || !body.answers || body.answers.length === 0) {

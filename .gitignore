@@ -24,3 +24,17 @@ dist-ssr
 *.sw?
 
 .env
+
+# Database files
+*.sqlite
+*.db
+
+# Prisma
+server/prisma/generated/
+
+# Server generated files
+server/node_modules
+server/.env.local
+
+# Deno
+server/deno.lock
