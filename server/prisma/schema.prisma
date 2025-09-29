@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "./generated"
@@ -13,4 +10,71 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String @id @default(uuid())
+  name      String
+  idNumber  String @map("id_number")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  submissions Submission[]
+  
+  @@map("users")
+}
+
+model Survey {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  year        Int      // 学年
+  semester    Int      // 学期 (1/2 对应上学期/下学期)
+  week        Int      // 周次
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  questions   Question[]
+  submissions Submission[]
+  
+  @@map("surveys")
+}
+
+model Question {
+  id          String @id @default(uuid())
+  surveyId    String @map("survey_id")
+  description String?
+  config      Json   // JSONB containing question configuration
+  order       Int    // Question order within survey
+  
+  survey  Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  answers Answer[]
+  
+  @@map("questions")
+}
+
+model Answer {
+  id           String @id @default(uuid())
+  questionId   String @map("question_id")
+  submissionId String @map("submission_id")
+  value        String // Store answer as string, parse based on question config
+  
+  question   Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  
+  @@unique([questionId, submissionId])
+  @@map("answers")
+}
+
+model Submission {
+  id        String   @id @default(uuid())
+  surveyId  String   @map("survey_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  survey  Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id])
+  answers Answer[]
+  
+  // Ensure same user can only submit once per survey
+  @@unique([surveyId, userId])
+  @@map("submissions")
 }
