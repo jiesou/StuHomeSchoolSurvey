@@ -84,12 +84,30 @@ Submission {
 
 ## 快速开始
 
+### ⚡ 快速启动（开发模式）
+
+**重要：需要同时启动后端和前端服务器！**
+
+```bash
+# 1. 启动后端服务器（在第一个终端）
+cd server
+deno task db:generate  # 首次运行需要
+deno task dev
+
+# 2. 启动前端服务器（在第二个终端）
+cd client
+npm install  # 首次运行需要
+npm run dev
+```
+
+然后访问：http://localhost:5173
+
 ### 环境要求
 - Deno 1.40+
 - Node.js 18+
-- PostgreSQL 13+
+- PostgreSQL 13+（可选，默认使用模拟数据）
 
-### 安装步骤
+### 完整安装步骤
 
 1. **克隆项目**
 ```bash

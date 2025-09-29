@@ -15,6 +15,7 @@
     "npm:@prisma/client@5": "5.22.0_prisma@6.16.2",
     "npm:@types/node@*": "24.2.0",
     "npm:path-to-regexp@^6.3.0": "6.3.0",
+    "npm:prisma@6.16.2": "6.16.2",
     "npm:prisma@^6.16.2": "6.16.2"
   },
   "jsr": {
