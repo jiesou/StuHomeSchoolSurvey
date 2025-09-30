@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-surveysys}
     volumes:
-      - ./data:/var/lib/postgresql/data:Z
+      - ./data:/var/lib/postgresql/18/docker
     restart: unless-stopped
 
   # Deno 后端+前端静态 serve
@@ -21,4 +21,8 @@ services:
       - "8000:8000"
     depends_on:
       - db
+    # Only for development environment:
+    # volumes:
+    #   - ./server:/app/server
+    #   - ./client:/app/client
     restart: unless-stopped
