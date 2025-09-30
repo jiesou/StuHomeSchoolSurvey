@@ -1,4 +1,4 @@
-<template style="min-height: 100vh; background-color: #f5f5f5">
+<template>
   <div id="container">
     <a-config-provider :locale="zhCN">
       <router-view />
@@ -14,6 +14,22 @@ import zhCN from 'ant-design-vue/es/locale/zh_CN';
 <style>
 #container {
   min-height: 100vh;
-  background-color: #f5f5f5; 
+  background-color: #f5f5f5;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+@media (min-width: 768px) {
+  #container {
+    padding: 0 24px;
+  }
+}
+
+@media (min-width: 1200px) {
+  #container {
+    padding: 0 32px;
+  }
 }
 </style>

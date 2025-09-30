@@ -188,9 +188,15 @@ onMounted(() => {
 
 <style scoped>
 .survey-container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 24px auto;
-  padding: 0 16px;
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .survey-container {
+    margin: 16px auto;
+  }
 }
 
 .question-item {
