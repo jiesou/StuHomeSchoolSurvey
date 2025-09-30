@@ -102,7 +102,7 @@
           </a-form-item>
           
           <a-form-item label="是否必填">
-            <a-switch v-model:checked="question.config.required" />
+            <a-checkbox v-model:checked="question.config.required" />
           </a-form-item>
         </a-card>
       </div>

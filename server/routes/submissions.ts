@@ -10,7 +10,7 @@ const submissionRouter = new Router();
 const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true"; // 默认使用模拟数据
 
 // 提交问卷答案
-submissionRouter.post("/submissions", async (ctx) => {
+submissionRouter.post("/", async (ctx) => {
   try {
     const body = await ctx.request.body.json() as SubmitAnswersRequest;
     

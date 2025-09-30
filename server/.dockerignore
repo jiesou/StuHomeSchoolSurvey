@@ -1,0 +1,4 @@
+server.exe
+public/*
+data.json
+/prisma/generated

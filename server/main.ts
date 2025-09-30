@@ -29,10 +29,14 @@ app.use(async (ctx, next) => {
 app.use(async (ctx, next) => {
   try {
     await next();
+    if (ctx.response.status === 404) {
+      ctx.response.status = 404;
+      ctx.response.body = { error: "API 端点未找到" };
+    }
   } catch (err) {
     console.error("请求处理出错:", err);
     ctx.response.status = 500;
-    ctx.response.body = { error: "服务器内部错误" };
+    ctx.response.body = { error: "Server internal error" };
   }
 });
 
@@ -41,16 +45,38 @@ router.get("/health", (ctx) => {
   ctx.response.status = 200;
   ctx.response.body = { status: "ok", timestamp: new Date().toISOString() };
 });
+const apiRouter = new Router();
+apiRouter.prefix("/api");
+apiRouter.use("/surveys", surveyRouter.routes(), surveyRouter.allowedMethods());
+apiRouter.use(
+  "/submissions",
+  submissionRouter.routes(),
+  submissionRouter.allowedMethods(),
+);
 
 // 注册路由
 app.use(router.routes());
+app.use(apiRouter.routes());
 app.use(router.allowedMethods());
-app.use(surveyRouter.routes());
-app.use(surveyRouter.allowedMethods());
-app.use(submissionRouter.routes());
-app.use(submissionRouter.allowedMethods());
+app.use(apiRouter.allowedMethods());
+app.use(async (ctx) => {
+  try {
+    // 尝试提供静态文件
+    await ctx.send({
+      root: "./public",
+      path: ctx.request.url.pathname,
+      index: "index.html"
+    });
+  } catch {
+    // 如果找不到文件，返回 index.html (用于 SPA 路由)
+    await ctx.send({
+      root: "./public",
+      path: "index.html",
+    });
+  }
+});
 
-const PORT = 8000;
+const PORT = Deno.env.get("PORT") ? Number(Deno.env.get("PORT")) : 8000;
 
 // 启动服务器
 async function startServer() {
@@ -66,14 +92,14 @@ async function startServer() {
   }
 
   // 监听端口
-  console.log(`服务器运行在 http://localhost:${PORT}`);
+  console.log(`服务器运行在 http://0.0.0.0:${PORT}`);
   await app.listen({ port: PORT });
 }
 
 // 启动应用
 if (import.meta.main) {
   // 优雅关闭处理
-  const shutdown = async () => {
+  const shutdown = () => {
     console.log("服务器已关闭");
     Deno.exit(0);
   };

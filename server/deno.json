@@ -2,7 +2,7 @@
   "tasks": {
     "dev": "deno run -A --env-file --watch main.ts",
     "start": "deno run -A --env-file main.ts",
-    "build": "deno compile -A --target x86_64-pc-windows-msvc main.ts",
+    "build:windows": "deno compile -A --target x86_64-pc-windows-msvc main.ts",
     "test": "deno test --allow-all",
     "db:generate": "npx prisma generate",
     "db:push": "npx prisma db push",
