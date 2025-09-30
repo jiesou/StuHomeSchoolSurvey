@@ -1,34 +1,21 @@
 <template>
   <div>
     <a-page-header title="问卷列表" />
-    
-    <a-table 
-      :dataSource="surveys" 
-      :columns="columns"
-      :pagination="pagination"
-      :loading="loading"
-      @change="handleTableChange"
-      rowKey="id"
-    >
+
+    <a-table :dataSource="surveys" :columns="columns" :pagination="pagination" :loading="loading"
+      @change="handleTableChange" rowKey="id">
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'semester'">
           {{ record.semester === 1 ? '上学期' : '下学期' }}
         </template>
-        
+
         <template v-if="column.key === 'actions'">
           <a-space>
-            <a-button 
-              type="primary" 
-              size="small"
-              @click="viewResults(record.id)"
-            >
+            <a-button type="primary" size="small" @click="viewResults(record.id)">
               查看结果
             </a-button>
-            <a-button 
-              size="small"
-              @click="copyLink(record.id)"
-            >
-              复制链接
+            <a-button size="small" @click="copyLink(record.id)">
+              复制问卷链接
             </a-button>
           </a-space>
         </template>
@@ -50,6 +37,7 @@ const surveys = ref<Survey[]>([])
 const pagination = ref({
   current: 1,
   pageSize: 10,
+  pageSizeOptions: ['5', '10', '20', '50'],
   total: 0,
   showSizeChanger: true,
   showQuickJumper: true,
@@ -93,7 +81,7 @@ async function loadSurveys() {
   loading.value = true
   try {
     const response: SurveyListResponse = await apiService.getSurveys(
-      pagination.value.current, 
+      pagination.value.current,
       pagination.value.pageSize
     )
     surveys.value = response.surveys

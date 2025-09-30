@@ -26,12 +26,12 @@
         <a-divider>请填写您的信息</a-divider>
         <a-row :gutter="16">
           <a-col :span="12">
-            <a-form-item label="姓名" name="name" :rules="{ required: true, message: '请输入姓名' }">
+            <a-form-item label="姓名" name="name" :rules="{ required: true }">
               <a-input v-model:value="formState.name" placeholder="请输入姓名" />
             </a-form-item>
           </a-col>
           <a-col :span="12">
-            <a-form-item label="学号" name="id_number" :rules="{ required: true, message: '请输入学号' }">
+            <a-form-item label="学号" name="id_number" :rules="{ required: true }">
               <a-input v-model:value="formState.id_number" placeholder="请输入学号" />
             </a-form-item>
           </a-col>
@@ -43,7 +43,7 @@
           <a-form-item 
             :label="`${index + 1}. ${question.description}`"
             :name="['answers', question.id]"
-            :rules="[{ required: question.config.required, message: `请回答问题：${question.description}` }]"
+            :rules="[{ required: question.config.required }]"
           >
             <!-- 星级评分 -->
             <a-rate 
