@@ -1,31 +1,22 @@
-# -- stage-1 -- client build
 FROM node:22-alpine
-FROM denoland/deno:2.5.2 AS client-builder
+FROM denoland/deno:2.5.2
 
-WORKDIR /app/client
-COPY client/package*.json ./
-COPY client/deno.* ./
-RUN deno install
+WORKDIR /app
 
-COPY client/ .
-RUN deno task build
+COPY server/package*.json ./server/
+COPY server/deno.* ./server/
+RUN cd server && deno install
 
-# -- stage-2 -- server start
-FROM denoland/deno:2.5.2 AS server
+COPY client/package*.json ./client/
+COPY client/deno.* ./client/
+RUN cd client && deno install
 
-WORKDIR /app/server
-
-COPY server/package*.json ./
-COPY server/deno.* ./
-RUN deno install
-
-COPY server/ .
-COPY --from=client-builder /app/client/dist/ ./public
-
-# 生成 Prisma 客户端
-RUN deno task db:generate
+COPY client/ ./client/
+RUN cd client && deno task build
+RUN ln -s /app/client/dist /app/server/public
 
 EXPOSE 8000
 
+WORKDIR /app/server
 # 生产服务模式启动
 CMD ["deno", "task", "start"]
