@@ -10,7 +10,7 @@ const surveyRouter = new Router();
 const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true"; // 默认使用模拟数据
 
 // 获取问卷列表（分页）
-surveyRouter.get("/api/surveys", async (ctx) => {
+surveyRouter.get("/surveys", async (ctx) => {
   const url = new URL(ctx.request.url);
   const page = parseInt(url.searchParams.get("page") || "1");
   const limit = parseInt(url.searchParams.get("limit") || "10");
@@ -56,7 +56,7 @@ surveyRouter.get("/api/surveys", async (ctx) => {
 });
 
 // 获取单个问卷详情
-surveyRouter.get("/api/surveys/:id", async (ctx) => {
+surveyRouter.get("/surveys/:id", async (ctx) => {
   const id = parseInt(ctx.params.id);
   if (!id) {
     ctx.response.status = 400;
@@ -95,7 +95,7 @@ surveyRouter.get("/api/surveys/:id", async (ctx) => {
 });
 
 // 创建新问卷
-surveyRouter.post("/api/surveys", async (ctx) => {
+surveyRouter.post("/surveys", async (ctx) => {
   try {
     const body = await ctx.request.body.json() as CreateSurveyRequest;
     
@@ -141,7 +141,7 @@ surveyRouter.post("/api/surveys", async (ctx) => {
 });
 
 // 获取问卷结果
-surveyRouter.get("/api/surveys/:id/results", async (ctx) => {
+surveyRouter.get("/surveys/:id/results", async (ctx) => {
   const id = parseInt(ctx.params.id);
   if (!id) {
     ctx.response.status = 400;

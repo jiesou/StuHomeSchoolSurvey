@@ -70,7 +70,7 @@ export interface CreateSurveyRequest {
   year: string;
   semester: number;
   week: number;
-  questions: Omit<Question, 'id' | 'survey_id'>[];
+  questions: Omit<Question, 'id' | 'survey_id'>[]; // 只包含 description 和 config
 }
 
 export interface CreateUserRequest {
@@ -116,7 +116,7 @@ export type AnswerValue<T extends QuestionType> =
 export function parseAnswerValue(answer: Answer, config: QuestionConfig): string | number {
   switch (config.type) {
     case QuestionType.STAR:
-      return parseInt(answer.value, 10);
+      return parseInt(answer.value as string);
     case QuestionType.INPUT:
       return answer.value;
     default:
