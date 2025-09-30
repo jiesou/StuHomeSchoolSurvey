@@ -12,7 +12,7 @@
     "jsr:@std/internal@^1.0.10": "1.0.10",
     "jsr:@std/media-types@1": "1.1.0",
     "jsr:@std/path@1": "1.1.2",
-    "npm:@prisma/client@5": "5.22.0_prisma@6.16.2",
+    "npm:@prisma/client@^6.16.2": "6.16.2_prisma@6.16.2",
     "npm:@types/node@*": "24.2.0",
     "npm:path-to-regexp@^6.3.0": "6.3.0",
     "npm:prisma@6.16.2": "6.16.2",
@@ -77,8 +77,8 @@
     }
   },
   "npm": {
-    "@prisma/client@5.22.0_prisma@6.16.2": {
-      "integrity": "sha512-M0SVXfyHnQREBKxCgyo7sffrKttwE6R8PMq330MIUF0pTwjUhLbW84pFDlf06B27XyCR++VtjugEnIHdr07SVA==",
+    "@prisma/client@6.16.2_prisma@6.16.2": {
+      "integrity": "sha512-E00PxBcalMfYO/TWnXobBVUai6eW/g5OsifWQsQDzJYm7yaY+IRLo7ZLsaefi0QkTpxfuhFcQ/w180i6kX3iJw==",
       "dependencies": [
         "prisma"
       ],
@@ -283,11 +283,11 @@
   "workspace": {
     "dependencies": [
       "jsr:@oak/oak@^17.1.6",
-      "jsr:@std/assert@1",
-      "npm:@prisma/client@5"
+      "jsr:@std/assert@1"
     ],
     "packageJson": {
       "dependencies": [
+        "npm:@prisma/client@^6.16.2",
         "npm:prisma@^6.16.2"
       ]
     }

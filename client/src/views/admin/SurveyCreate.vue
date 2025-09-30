@@ -196,15 +196,6 @@ async function handleSubmit() {
   try {
     await formRef.value.validate()
     
-    // 验证问题
-    for (let i = 0; i < formData.questions.length; i++) {
-      const question = formData.questions[i]
-      if (!question?.description) {
-        message.error(`问题 ${i + 1} 的描述不能为空`)
-        return
-      }
-    }
-    
     submitting.value = true
     await apiService.createSurvey(formData)
     message.success('问卷创建成功')

@@ -51,7 +51,7 @@ export interface Answer {
   id: number;
   question_id: number;
   submission_id: number;
-  value: string;
+  value: AnswerValue<QuestionType>;
 }
 
 export interface Submission {

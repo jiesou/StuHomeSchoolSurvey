@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "dev": "deno run -A --watch main.ts",
+    "dev": "deno run -A --env-file --watch main.ts",
     "start": "deno run -A --env-file main.ts",
     "build": "deno compile -A --target x86_64-pc-windows-msvc main.ts",
     "test": "deno test --allow-all",
@@ -10,8 +10,7 @@
   },
   "imports": {
     "@oak/oak": "jsr:@oak/oak@^17.1.6",
-    "@std/assert": "jsr:@std/assert@^1.0.0",
-    "@prisma/client/runtime/library": "npm:@prisma/client@^5.0.0/runtime/library"
+    "@std/assert": "jsr:@std/assert@^1.0.0"
   },
   "nodeModulesDir": "auto"
 }

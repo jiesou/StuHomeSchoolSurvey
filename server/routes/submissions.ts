@@ -1,13 +1,13 @@
 // 提交答案相关的 API 路由
 import { Router } from "@oak/oak";
-import { getPrisma } from "../db.ts";
+import { prisma } from "../db.ts";
 import { SubmitAnswersRequest, UserRole } from "../types.ts";
 import { mockDataService } from "../mock-data.ts";
 
 const submissionRouter = new Router();
 
 // 检查是否使用模拟数据
-const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true" || true; // 默认使用模拟数据
+const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true"; // 默认使用模拟数据
 
 // 提交问卷答案
 submissionRouter.post("/api/submissions", async (ctx) => {
@@ -25,7 +25,6 @@ submissionRouter.post("/api/submissions", async (ctx) => {
     if (USE_MOCK_DATA) {
       submission = await mockDataService.submitAnswers(body);
     } else {
-      const prisma = getPrisma();
       
       // 检查问卷是否存在
       const survey = await prisma.survey.findUnique({

@@ -1,5 +1,4 @@
 import { Application, Router } from "@oak/oak";
-import { testConnection, disconnectPrisma } from "./db.ts";
 import { surveyRouter } from "./routes/surveys.ts";
 import { submissionRouter } from "./routes/submissions.ts";
 
@@ -9,14 +8,20 @@ const router = new Router();
 // CORS 中间件
 app.use(async (ctx, next) => {
   ctx.response.headers.set("Access-Control-Allow-Origin", "*");
-  ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  ctx.response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  
+  ctx.response.headers.set(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS",
+  );
+  ctx.response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization",
+  );
+
   if (ctx.request.method === "OPTIONS") {
     ctx.response.status = 204;
     return;
   }
-  
+
   await next();
 });
 
@@ -50,46 +55,33 @@ const PORT = 8000;
 // 启动服务器
 async function startServer() {
   console.log("正在启动服务器...");
-  
+
   // 检查是否使用模拟数据
-  const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true" || true;
-  
+  const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true";
+
   if (!USE_MOCK_DATA) {
-    // 测试数据库连接
-    const dbConnected = await testConnection();
-    if (!dbConnected) {
-      console.error("数据库连接失败，服务器启动中止");
-      Deno.exit(1);
-    }
-    console.log("数据库连接成功");
+    console.log("使用数据库连接");
   } else {
     console.log("使用模拟数据模式");
   }
-  
+
   // 监听端口
   console.log(`服务器运行在 http://localhost:${PORT}`);
   await app.listen({ port: PORT });
 }
 
-// 优雅关闭处理
-function setupGracefulShutdown() {
+// 启动应用
+if (import.meta.main) {
+  // 优雅关闭处理
   const shutdown = async () => {
-    console.log("\n正在关闭服务器...");
-    await disconnectPrisma();
     console.log("服务器已关闭");
     Deno.exit(0);
   };
-
-  // 监听中断信号
   if (Deno.build.os !== "windows") {
     Deno.addSignalListener("SIGINT", shutdown);
     Deno.addSignalListener("SIGTERM", shutdown);
   }
-}
 
-// 启动应用
-if (import.meta.main) {
-  setupGracefulShutdown();
   startServer().catch((error) => {
     console.error("服务器启动失败:", error);
     Deno.exit(1);

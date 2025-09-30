@@ -1,13 +1,13 @@
 // 问卷相关的 API 路由
 import { Router } from "@oak/oak";
-import { getPrisma } from "../db.ts";
+import { prisma } from "../db.ts";
 import { CreateSurveyRequest, SurveyListResponse, SurveyResultResponse, Survey, Submission } from "../types.ts";
 import { mockDataService } from "../mock-data.ts";
 
 const surveyRouter = new Router();
 
 // 检查是否使用模拟数据
-const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true" || true; // 默认使用模拟数据
+const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true"; // 默认使用模拟数据
 
 // 获取问卷列表（分页）
 surveyRouter.get("/api/surveys", async (ctx) => {
@@ -22,7 +22,6 @@ surveyRouter.get("/api/surveys", async (ctx) => {
       response = await mockDataService.getSurveys(page, limit);
     } else {
       const skip = (page - 1) * limit;
-      const prisma = getPrisma();
       
       const [surveys, total] = await Promise.all([
         prisma.survey.findMany({
@@ -71,7 +70,6 @@ surveyRouter.get("/api/surveys/:id", async (ctx) => {
     if (USE_MOCK_DATA) {
       survey = await mockDataService.getSurvey(id);
     } else {
-      const prisma = getPrisma();
       const result = await prisma.survey.findUnique({
         where: { id },
         include: {
@@ -112,7 +110,6 @@ surveyRouter.post("/api/surveys", async (ctx) => {
     if (USE_MOCK_DATA) {
       survey = await mockDataService.createSurvey(body);
     } else {
-      const prisma = getPrisma();
       const result = await prisma.survey.create({
         data: {
           title: body.title,
@@ -163,7 +160,6 @@ surveyRouter.get("/api/surveys/:id/results", async (ctx) => {
       response = await mockDataService.getSurveyResults(id, page, limit);
     } else {
       const skip = (page - 1) * limit;
-      const prisma = getPrisma();
       
       const [survey, submissions, total] = await Promise.all([
         prisma.survey.findUnique({

@@ -7,7 +7,7 @@
     
     <a-descriptions v-if="survey" bordered size="small" style="margin-bottom: 24px">
       <a-descriptions-item label="学年">{{ survey.year }}</a-descriptions-item>
-      <a-descriptions-item label="学期">{{ survey.semester === 1 ? '上学期' : '下学期' }}</a-descriptions-item>
+      <a-descriptions-item label="学期">{{ survey.semester === 1 ? '第一学期' : '第二学期' }}</a-descriptions-item>
       <a-descriptions-item label="周次">第{{ survey.week }}周</a-descriptions-item>
       <a-descriptions-item label="创建时间">{{ new Date(survey.created_at).toLocaleString() }}</a-descriptions-item>
       <a-descriptions-item label="问题数量">{{ survey.questions?.length || 0 }}</a-descriptions-item>

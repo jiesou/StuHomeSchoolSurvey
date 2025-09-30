@@ -17,8 +17,7 @@
       </p>
       
       <a-form
-        :model="formData"
-        :rules="rules"
+        :model="formState"
         layout="vertical"
         @finish="handleSubmit"
         ref="formRef"
@@ -27,13 +26,13 @@
         <a-divider>请填写您的信息</a-divider>
         <a-row :gutter="16">
           <a-col :span="12">
-            <a-form-item label="姓名" name="name">
-              <a-input v-model:value="formData.name" placeholder="请输入姓名" />
+            <a-form-item label="姓名" name="name" :rules="{ required: true, message: '请输入姓名' }">
+              <a-input v-model:value="formState.name" placeholder="请输入姓名" />
             </a-form-item>
           </a-col>
           <a-col :span="12">
-            <a-form-item label="学号" name="id_number">
-              <a-input v-model:value="formData.id_number" placeholder="请输入学号" />
+            <a-form-item label="学号" name="id_number" :rules="{ required: true, message: '请输入学号' }">
+              <a-input v-model:value="formState.id_number" placeholder="请输入学号" />
             </a-form-item>
           </a-col>
         </a-row>
@@ -43,13 +42,13 @@
         <div v-for="(question, index) in survey.questions" :key="question.id" class="question-item">
           <a-form-item 
             :label="`${index + 1}. ${question.description}`"
-            :name="`question_${question.id}`"
-            :rules="question.config.required ? [{ required: true, message: '此题为必填项' }] : []"
+            :name="['answers', question.id]"
+            :rules="[{ required: question.config.required, message: `请回答问题：${question.description}` }]"
           >
             <!-- 星级评分 -->
             <a-rate 
               v-if="question.config.type === 'star'"
-              v-model:value="answers[question.id]"
+              v-model:value="formState.answers[question.id]"
               :count="question.config.maxStars || 5"
               allow-clear
             />
@@ -57,7 +56,7 @@
             <!-- 文本输入 -->
             <a-textarea
               v-else-if="question.config.type === 'input'"
-              v-model:value="answers[question.id]"
+              v-model:value="formState.answers[question.id]"
               :placeholder="question.config.placeholder || '请输入您的回答'"
               :rows="3"
             />
@@ -105,7 +104,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import { apiService } from '../api'
-import type { Survey, SubmitAnswersRequest } from '../types'
+import type { Survey, SubmitAnswersRequest, QuestionType, AnswerValue } from '../types'
 
 interface Props {
   id: string
@@ -119,17 +118,16 @@ const survey = ref<Survey | null>(null)
 const showSuccessModal = ref(false)
 const formRef = ref()
 
-const formData = reactive({
+
+const formState = reactive<{
+  name: string;
+  id_number: string;
+  answers: Record<number, AnswerValue<QuestionType>>;
+}>({
   name: '',
-  id_number: ''
+  id_number: '',
+  answers: {}
 })
-
-const answers = reactive<Record<number, string | number>>({})
-
-const rules = {
-  name: [{ required: true, message: '请输入姓名' }],
-  id_number: [{ required: true, message: '请输入学号' }]
-}
 
 async function loadSurvey() {
   loading.value = true
@@ -149,26 +147,23 @@ async function handleSubmit() {
     
     if (!survey.value) return
     
-    // 检查必填问题是否已回答
-    for (const question of survey.value.questions || []) {
-      if (question.config.required && !answers[question.id]) {
-        message.error(`问题"${question.description}"为必填项`)
-        return
-      }
-    }
-    
     submitting.value = true
+    
+    // 构建答案数组，只包含已回答的问题
+    const answers: { question_id: number; value: string }[] = Object.entries(formState.answers)
+      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+      .map(([id, value]) => ({
+        question_id: parseInt(id),
+        value: String(value)
+      }))
     
     const submitData: SubmitAnswersRequest = {
       survey_id: parseInt(props.id),
       user: {
-        name: formData.name,
-        id_number: formData.id_number
+        name: formState.name,
+        id_number: formState.id_number
       },
-      answers: Object.entries(answers).map(([questionId, value]) => ({
-        question_id: parseInt(questionId),
-        value: String(value)
-      }))
+      answers
     }
     
     await apiService.submitAnswers(submitData)

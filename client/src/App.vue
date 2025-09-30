@@ -1,5 +1,5 @@
-<template>
-  <div id="app">
+<template style="min-height: 100vh; background-color: #f5f5f5">
+  <div id="container">
     <router-view />
   </div>
 </template>
@@ -9,8 +9,8 @@
 </script>
 
 <style>
-#app {
+#container {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #f5f5f5; 
 }
 </style>
