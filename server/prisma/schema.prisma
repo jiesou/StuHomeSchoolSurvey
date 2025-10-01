@@ -2,9 +2,10 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client"
-  output   = "./generated"
-  runtime = "deno"
+  provider   = "prisma-client"
+  output     = "./generated"
+  engineType = "client"
+  runtime    = "deno"
 }
 
 datasource db {
@@ -17,7 +18,7 @@ model User {
   id        Int    @id @default(autoincrement())
   name      String
   id_number String // 学号，不用于主键
-  role      Int    // 1=学生, 10=老师
+  role      Int // 1=学生, 10=老师
 
   // 关联关系
   submissions Submission[]
@@ -30,9 +31,9 @@ model Survey {
   id          Int      @id @default(autoincrement())
   title       String
   description String?
-  year        String   // 学年，如 "2023-2024"
-  semester    Int      // 学期：1=上学期, 2=下学期  
-  week        Int      // 周次
+  year        String // 学年，如 "2023-2024"
+  semester    Int // 学期：1=上学期, 2=下学期  
+  week        Int // 周次
   created_at  DateTime @default(now())
 
   // 关联关系
@@ -47,7 +48,7 @@ model Question {
   id          Int     @id @default(autoincrement())
   survey_id   Int
   description String?
-  config      Json    // JSONB 存储问题配置，包含 type 等信息
+  config      Json // JSONB 存储问题配置，包含 type 等信息
 
   // 关联关系
   survey  Survey   @relation(fields: [survey_id], references: [id], onDelete: Cascade)
@@ -58,10 +59,10 @@ model Question {
 
 // 答案表
 model Answer {
-  id          Int    @id @default(autoincrement())
-  question_id Int
+  id            Int    @id @default(autoincrement())
+  question_id   Int
   submission_id Int
-  value       String // 统一存储为字符串，通过 question config 解析类型
+  value         String // 统一存储为字符串，通过 question config 解析类型
 
   // 关联关系
   question   Question   @relation(fields: [question_id], references: [id], onDelete: Cascade)
@@ -72,9 +73,9 @@ model Answer {
 
 // 提交记录表
 model Submission {
-  id        Int      @id @default(autoincrement())
-  survey_id Int
-  user_id   Int
+  id         Int      @id @default(autoincrement())
+  survey_id  Int
+  user_id    Int
   created_at DateTime @default(now())
 
   // 关联关系
