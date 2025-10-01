@@ -17,6 +17,29 @@
             <a-button size="small" @click="copyLink(record.id)">
               复制问卷链接
             </a-button>
+            <a-dropdown>
+              <template #overlay>
+                <a-menu @click="(e: any) => handleMenuClick(e, record)">
+                  <a-menu-item key="clone">
+                    <CopyOutlined />
+                    克隆问卷
+                  </a-menu-item>
+                  <a-menu-item key="edit">
+                    <EditOutlined />
+                    编辑问卷
+                  </a-menu-item>
+                  <a-menu-divider />
+                  <a-menu-item key="delete" danger>
+                    <DeleteOutlined />
+                    删除问卷
+                  </a-menu-item>
+                </a-menu>
+              </template>
+              <a-button size="small">
+                更多操作
+                <DownOutlined />
+              </a-button>
+            </a-dropdown>
           </a-space>
         </template>
       </template>
@@ -27,7 +50,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
+import { message, Modal } from 'ant-design-vue'
+import { CopyOutlined, EditOutlined, DeleteOutlined, DownOutlined } from '@ant-design/icons-vue'
 import { apiService } from '../../api'
 import type { Survey, SurveyListResponse } from '../../types'
 
@@ -109,6 +133,47 @@ function copyLink(id: number) {
     message.success('问卷链接已复制到剪贴板')
   }).catch(() => {
     message.error('复制失败，请手动复制：' + link)
+  })
+}
+
+function handleMenuClick(e: any, record: Survey) {
+  switch (e.key) {
+    case 'clone':
+      cloneSurvey(record.id)
+      break
+    case 'edit':
+      editSurvey(record.id)
+      break
+    case 'delete':
+      confirmDelete(record)
+      break
+  }
+}
+
+function cloneSurvey(id: number) {
+  router.push(`/admin/create?clone=true&id=${id}`)
+}
+
+function editSurvey(id: number) {
+  router.push(`/admin/edit/${id}`)
+}
+
+function confirmDelete(survey: Survey) {
+  Modal.confirm({
+    title: '确认删除',
+    content: `确定要删除问卷"${survey.title}"吗？此操作不可撤销。`,
+    okText: '确定',
+    okType: 'danger',
+    cancelText: '取消',
+    onOk: async () => {
+      try {
+        await apiService.deleteSurvey(survey.id)
+        message.success('问卷删除成功')
+        loadSurveys()
+      } catch (error) {
+        message.error('删除失败：' + (error as Error).message)
+      }
+    }
   })
 }
 

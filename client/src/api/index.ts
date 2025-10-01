@@ -44,6 +44,21 @@ class ApiService {
     })
   }
 
+  // 更新问卷
+  async updateSurvey(id: number, data: CreateSurveyRequest): Promise<Survey> {
+    return this.request<Survey>(`surveys/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  // 删除问卷
+  async deleteSurvey(id: number): Promise<{ success: boolean, message: string }> {
+    return this.request<{ success: boolean, message: string }>(`surveys/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
   // 获取问卷结果
   async getSurveyResults(id: number, page = 1, limit = 20): Promise<SurveyResultResponse> {
     return this.request<SurveyResultResponse>(`surveys/${id}/results?page=${page}&limit=${limit}`)
