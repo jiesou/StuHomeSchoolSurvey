@@ -18,7 +18,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-surveysys}
       PORT: 8000
     ports:
-      - "8000:8000"
+      - "8000"
     depends_on:
       - db
     # Only for development environment:

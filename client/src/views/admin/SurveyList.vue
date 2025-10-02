@@ -6,7 +6,7 @@
       @change="handleTableChange" rowKey="id">
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'semester'">
-          {{ record.semester === 1 ? '上学期' : '下学期' }}
+          {{ record.semester === 1 ? '第一学期' : '第二学期' }}
         </template>
 
         <template v-if="column.key === 'actions'">
@@ -17,6 +17,36 @@
             <a-button size="small" @click="copyLink(record.id)">
               复制问卷链接
             </a-button>
+            <a-dropdown>
+              <template #overlay>
+                <a-menu @click="(e: any) => handleMenuClick(e, record)">
+                  <a-menu-item key="clone">
+                    <CopyOutlined />
+                    克隆
+                  </a-menu-item>
+                  <a-menu-item key="edit">
+                    <EditOutlined />
+                    编辑
+                  </a-menu-item>
+                  <a-menu-divider />
+                  <a-popconfirm
+                    :title="`确定要删除问卷「${record.title}」吗？`"
+                    ok-text="确定"
+                    cancel-text="取消"
+                    @confirm="deleteSurvey(record)"
+                  >
+                    <a-menu-item key="delete" danger>
+                      <DeleteOutlined />
+                      删除
+                    </a-menu-item>
+                  </a-popconfirm>
+                </a-menu>
+              </template>
+              <a-button size="small">
+                更多操作
+                <DownOutlined />
+              </a-button>
+            </a-dropdown>
           </a-space>
         </template>
       </template>
@@ -28,6 +58,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
+import { CopyOutlined, EditOutlined, DeleteOutlined, DownOutlined } from '@ant-design/icons-vue'
 import { apiService } from '../../api'
 import type { Survey, SurveyListResponse } from '../../types'
 
@@ -110,6 +141,39 @@ function copyLink(id: number) {
   }).catch(() => {
     message.error('复制失败，请手动复制：' + link)
   })
+}
+
+function handleMenuClick(e: any, record: Survey) {
+  switch (e.key) {
+    case 'clone':
+      cloneSurvey(record)
+      break
+    case 'edit':
+      editSurvey(record.id)
+      break
+  }
+}
+
+function cloneSurvey(survey: Survey) {
+  // 通过 router state 传递问卷数据
+  router.push({
+    path: '/admin/create',
+    state: { cloneSurvey: JSON.parse(JSON.stringify(survey)) }
+  })
+}
+
+function editSurvey(id: number) {
+  router.push(`/admin/edit/${id}`)
+}
+
+async function deleteSurvey(survey: Survey) {
+  try {
+    await apiService.deleteSurvey(survey.id)
+    message.success('问卷删除成功')
+    loadSurveys()
+  } catch (error) {
+    message.error('删除失败：' + (error as Error).message)
+  }
 }
 
 onMounted(() => {

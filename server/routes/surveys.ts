@@ -140,6 +140,104 @@ surveyRouter.post("/", async (ctx) => {
   }
 });
 
+// 更新问卷
+surveyRouter.put("/:id", async (ctx) => {
+  const id = parseInt(ctx.params.id);
+  if (!id) {
+    ctx.response.status = 400;
+    ctx.response.body = { error: "无效的问卷ID" };
+    return;
+  }
+
+  try {
+    const body = await ctx.request.body.json() as CreateSurveyRequest;
+    
+    if (!body.title || !body.year || !body.semester || !body.week) {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "缺少必要字段" };
+      return;
+    }
+
+    let survey: Survey | null;
+    
+    if (USE_MOCK_DATA) {
+      ctx.response.status = 501;
+      ctx.response.body = { error: "模拟数据模式不支持更新" };
+      return;
+    } else {
+      // 删除旧问题
+      await prisma.question.deleteMany({
+        where: { survey_id: id }
+      });
+
+      // 更新问卷和创建新问题
+      const result = await prisma.survey.update({
+        where: { id },
+        data: {
+          title: body.title,
+          description: body.description,
+          year: body.year,
+          semester: body.semester,
+          week: body.week,
+          questions: {
+            create: body.questions.map((q: any) => ({
+              description: q.description,
+              config: q.config,
+            }))
+          }
+        },
+        include: {
+          questions: true,
+        },
+      });
+      survey = result as unknown as Survey;
+    }
+
+    if (!survey) {
+      ctx.response.status = 404;
+      ctx.response.body = { error: "问卷不存在" };
+      return;
+    }
+
+    ctx.response.status = 200;
+    ctx.response.body = survey;
+  } catch (error) {
+    console.error("更新问卷失败:", error);
+    ctx.response.status = 500;
+    ctx.response.body = { error: "更新问卷失败" };
+  }
+});
+
+// 删除问卷
+surveyRouter.delete("/:id", async (ctx) => {
+  const id = parseInt(ctx.params.id);
+  if (!id) {
+    ctx.response.status = 400;
+    ctx.response.body = { error: "无效的问卷ID" };
+    return;
+  }
+
+  try {
+    if (USE_MOCK_DATA) {
+      ctx.response.status = 501;
+      ctx.response.body = { error: "模拟数据模式不支持删除" };
+      return;
+    }
+
+    // 删除问卷（级联删除问题、提交和答案）
+    await prisma.survey.delete({
+      where: { id }
+    });
+
+    ctx.response.status = 200;
+    ctx.response.body = { success: true, message: "问卷删除成功" };
+  } catch (error) {
+    console.error("删除问卷失败:", error);
+    ctx.response.status = 500;
+    ctx.response.body = { error: "删除问卷失败" };
+  }
+});
+
 // 获取问卷结果
 surveyRouter.get("/:id/results", async (ctx) => {
   const id = parseInt(ctx.params.id);
