@@ -1,11 +1,13 @@
-// 问卷路由单元测试
+// 问卷路由单元测试 - 使用 Oak testing utilities
 import { assertEquals, assertExists } from "@std/assert";
-import { stub } from "@std/testing/mock";
-import { prisma } from "../db_mock.ts";
+import { stub, returnsNext } from "@std/testing/mock";
+import { testing, Application } from "@oak/oak";
+import { surveyRouter } from "./surveys.ts";
+import { prisma } from "../db.ts";
 import { QuestionType } from "../types.ts";
 
-// 测试获取问卷列表的业务逻辑
-Deno.test("getSurveys - 应该正确处理分页", async () => {
+// 测试获取问卷列表
+Deno.test("GET / - 应该返回分页的问卷列表", async () => {
   const mockSurveys = [
     {
       id: 1,
@@ -31,50 +33,41 @@ Deno.test("getSurveys - 应该正确处理分页", async () => {
     }
   ];
 
-  const findManyStub = stub(
+  using findManyStub = stub(
     prisma.survey,
     "findMany",
-    () => Promise.resolve(mockSurveys)
+    () => Promise.resolve(mockSurveys as any)
   );
 
-  const countStub = stub(
+  using countStub = stub(
     prisma.survey,
     "count",
-    () => Promise.resolve(10)
+    () => Promise.resolve(10 as any)
   );
 
-  try {
-    const page = 1;
-    const limit = 10;
-    const skip = (page - 1) * limit;
+  const ctx = testing.createMockContext({
+    path: "/?page=1&limit=10",
+    method: "GET",
+  });
+  
+  const app = new Application();
+  app.use(surveyRouter.routes());
+  
+  // 手动调用路由中间件
+  const middleware = surveyRouter.routes();
+  await middleware(ctx, async () => {});
 
-    // 模拟实际路由中的逻辑
-    const [surveys, total] = await Promise.all([
-      prisma.survey.findMany({
-        skip,
-        take: limit,
-        orderBy: { created_at: 'desc' },
-        include: {
-          questions: true,
-          _count: {
-            select: { submissions: true }
-          }
-        }
-      }),
-      prisma.survey.count()
-    ]);
-
-    assertEquals(surveys.length, 2);
-    assertEquals(total, 10);
-    assertEquals(surveys[0].title, "测试问卷1");
-  } finally {
-    findManyStub.restore();
-    countStub.restore();
-  }
+  assertEquals(ctx.response.status, 200);
+  const body = ctx.response.body as any;
+  assertEquals(body.surveys.length, 2);
+  assertEquals(body.total, 10);
+  assertEquals(body.page, 1);
+  assertEquals(body.limit, 10);
+  assertEquals(body.surveys[0].title, "测试问卷1");
 });
 
 // 测试获取单个问卷
-Deno.test("getSurvey - 应该返回指定ID的问卷", async () => {
+Deno.test("GET /:id - 应该返回指定ID的问卷", async () => {
   const mockSurvey = {
     id: 1,
     title: "测试问卷",
@@ -93,30 +86,53 @@ Deno.test("getSurvey - 应该返回指定ID的问卷", async () => {
     ]
   };
 
-  const findUniqueStub = stub(
+  using findUniqueStub = stub(
     prisma.survey,
     "findUnique",
-    () => Promise.resolve(mockSurvey)
+    () => Promise.resolve(mockSurvey as any)
   );
 
-  try {
-    const result = await prisma.survey.findUnique({
-      where: { id: 1 },
-      include: { questions: true }
-    });
+  const ctx = testing.createMockContext({
+    path: "/1",
+    method: "GET",
+    params: { id: "1" }
+  });
 
-    assertExists(result);
-    assertEquals(result?.id, 1);
-    assertEquals(result?.title, "测试问卷");
-    assertEquals(result?.questions?.length, 1);
-  } finally {
-    findUniqueStub.restore();
-  }
+  const middleware = surveyRouter.routes();
+  await middleware(ctx, async () => {});
+
+  assertEquals(ctx.response.status, 200);
+  const body = ctx.response.body as any;
+  assertEquals(body.id, 1);
+  assertEquals(body.title, "测试问卷");
+  assertEquals(body.questions.length, 1);
+});
+
+// 测试获取不存在的问卷
+Deno.test("GET /:id - 问卷不存在时应该返回404", async () => {
+  using findUniqueStub = stub(
+    prisma.survey,
+    "findUnique",
+    () => Promise.resolve(null as any)
+  );
+
+  const ctx = testing.createMockContext({
+    path: "/999",
+    method: "GET",
+    params: { id: "999" }
+  });
+
+  const middleware = surveyRouter.routes();
+  await middleware(ctx, async () => {});
+
+  assertEquals(ctx.response.status, 404);
+  const body = ctx.response.body as any;
+  assertEquals(body.error, "问卷不存在");
 });
 
 // 测试创建问卷
-Deno.test("createSurvey - 应该正确创建问卷和问题", async () => {
-  const mockResult = {
+Deno.test("POST / - 应该成功创建问卷", async () => {
+  const mockCreatedSurvey = {
     id: 3,
     title: "新问卷",
     description: "新描述",
@@ -134,76 +150,111 @@ Deno.test("createSurvey - 应该正确创建问卷和问题", async () => {
     ]
   };
 
-  const createStub = stub(
+  using createStub = stub(
     prisma.survey,
     "create",
-    () => Promise.resolve(mockResult)
+    () => Promise.resolve(mockCreatedSurvey as any)
   );
 
-  try {
-    const requestBody = {
-      title: "新问卷",
-      description: "新描述",
-      year: "2024-2025",
-      semester: 1,
-      week: 1,
-      questions: [
-        {
-          description: "新问题",
-          config: { type: QuestionType.INPUT, required: true }
-        }
-      ]
-    };
+  const requestBody = {
+    title: "新问卷",
+    description: "新描述",
+    year: "2024-2025",
+    semester: 1,
+    week: 1,
+    questions: [
+      {
+        description: "新问题",
+        config: { type: QuestionType.INPUT, required: true }
+      }
+    ]
+  };
 
-    const result = await prisma.survey.create({
-      data: {
-        title: requestBody.title,
-        description: requestBody.description,
-        year: requestBody.year,
-        semester: requestBody.semester,
-        week: requestBody.week,
-        questions: {
-          create: requestBody.questions.map((q: any) => ({
-            description: q.description,
-            config: q.config,
-          }))
-        }
-      },
-      include: {
-        questions: true,
-      },
-    });
+  const bodyStream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode(JSON.stringify(requestBody)));
+      controller.close();
+    },
+  });
 
-    assertExists(result);
-    assertEquals(result.title, "新问卷");
-    assertEquals(result.questions.length, 1);
-  } finally {
-    createStub.restore();
-  }
+  const ctx = testing.createMockContext({
+    path: "/",
+    method: "POST",
+    headers: [["content-type", "application/json"]],
+    body: bodyStream,
+  });
+
+  const middleware = surveyRouter.routes();
+  await middleware(ctx, async () => {});
+
+  assertEquals(ctx.response.status, 201);
+  const body = ctx.response.body as any;
+  assertEquals(body.title, "新问卷");
+  assertEquals(body.questions.length, 1);
+});
+
+// 测试创建问卷时缺少必要字段
+Deno.test("POST / - 缺少必要字段时应该返回400", async () => {
+  const requestBody = {
+    title: "新问卷",
+    // 缺少 year, semester, week
+  };
+
+  const bodyStream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode(JSON.stringify(requestBody)));
+      controller.close();
+    },
+  });
+
+  const ctx = testing.createMockContext({
+    path: "/",
+    method: "POST",
+    headers: [["content-type", "application/json"]],
+    body: bodyStream,
+  });
+
+  const middleware = surveyRouter.routes();
+  await middleware(ctx, async () => {});
+
+  assertEquals(ctx.response.status, 400);
+  const body = ctx.response.body as any;
+  assertEquals(body.error, "缺少必要字段");
 });
 
 // 测试删除问卷
-Deno.test("deleteSurvey - 应该成功删除问卷", async () => {
-  const deleteStub = stub(
+Deno.test("DELETE /:id - 应该成功删除问卷", async () => {
+  using deleteStub = stub(
     prisma.survey,
     "delete",
-    () => Promise.resolve({ id: 1, title: "已删除", description: null, year: "2024", semester: 1, week: 1, created_at: new Date() })
+    () => Promise.resolve({ 
+      id: 1, 
+      title: "已删除", 
+      description: null, 
+      year: "2024", 
+      semester: 1, 
+      week: 1, 
+      created_at: new Date() 
+    } as any)
   );
 
-  try {
-    const result = await prisma.survey.delete({
-      where: { id: 1 }
-    });
+  const ctx = testing.createMockContext({
+    path: "/1",
+    method: "DELETE",
+    params: { id: "1" }
+  });
 
-    assertExists(result);
-    assertEquals(result.id, 1);
-  } finally {
-    deleteStub.restore();
-  }
+  const middleware = surveyRouter.routes();
+  await middleware(ctx, async () => {});
+
+  assertEquals(ctx.response.status, 200);
+  const body = ctx.response.body as any;
+  assertEquals(body.success, true);
+  assertEquals(body.message, "问卷删除成功");
 });
 
 // 测试获取问卷结果
-Deno.test("getSurveyResults - 应该返回问卷和提交列表", async () => {
+Deno.test("GET /:id/results - 应该返回问卷和提交列表", async () => {
   const mockSurvey = {
     id: 1,
     title: "测试问卷",
@@ -231,56 +282,37 @@ Deno.test("getSurveyResults - 应该返回问卷和提交列表", async () => {
     }
   ];
 
-  const findUniqueStub = stub(
+  using findUniqueStub = stub(
     prisma.survey,
     "findUnique",
-    () => Promise.resolve(mockSurvey)
+    () => Promise.resolve(mockSurvey as any)
   );
 
-  const findManyStub = stub(
+  using findManyStub = stub(
     prisma.submission,
     "findMany",
-    () => Promise.resolve(mockSubmissions)
+    () => Promise.resolve(mockSubmissions as any)
   );
 
-  const countStub = stub(
+  using countStub = stub(
     prisma.submission,
     "count",
-    () => Promise.resolve(1)
+    () => Promise.resolve(1 as any)
   );
 
-  try {
-    const page = 1;
-    const limit = 20;
-    const skip = (page - 1) * limit;
+  const ctx = testing.createMockContext({
+    path: "/1/results?page=1&limit=20",
+    method: "GET",
+    params: { id: "1" }
+  });
 
-    const [survey, submissions, total] = await Promise.all([
-      prisma.survey.findUnique({
-        where: { id: 1 },
-        include: { questions: true },
-      }),
-      prisma.submission.findMany({
-        where: { survey_id: 1 },
-        skip,
-        take: limit,
-        orderBy: { created_at: 'desc' },
-        include: {
-          user: true,
-          answers: true,
-        },
-      }),
-      prisma.submission.count({
-        where: { survey_id: 1 },
-      })
-    ]);
+  const middleware = surveyRouter.routes();
+  await middleware(ctx, async () => {});
 
-    assertExists(survey);
-    assertEquals(submissions.length, 1);
-    assertEquals(total, 1);
-    assertEquals(submissions[0].user.name, "张三");
-  } finally {
-    findUniqueStub.restore();
-    findManyStub.restore();
-    countStub.restore();
-  }
+  assertEquals(ctx.response.status, 200);
+  const body = ctx.response.body as any;
+  assertExists(body.survey);
+  assertEquals(body.submissions.length, 1);
+  assertEquals(body.total, 1);
+  assertEquals(body.submissions[0].user.name, "张三");
 });

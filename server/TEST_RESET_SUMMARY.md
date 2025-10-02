@@ -23,32 +23,41 @@
 **总计：减少了 265+ 行重复和历史代码**
 
 ### 3. 新增单元测试
-使用 `@std/testing/mock` 和 `@std/assert` 创建了完整的单元测试：
+使用 Oak testing utilities、`@std/testing/mock` 和 `@std/assert` 创建了完整的单元测试：
+
+#### 测试方法
+- 使用 `testing.createMockContext()` 创建 Oak 模拟上下文
+- 使用 `stub()` 对 `prisma` 实例的方法进行存根（stubbing）
+- 直接调用路由中间件并验证响应
+- 测试实际的 Oak 路由处理逻辑，而不是测试 mock 本身
 
 #### 测试文件
 - `server/main_test.ts` - 工具函数测试（3 个测试）
-- `server/routes/surveys_test.ts` - 问卷路由测试（5 个测试）
-- `server/routes/submissions_test.ts` - 提交路由测试（4 个测试）
-- `server/db_mock.ts` - Mock Prisma 客户端（用于测试隔离）
+- `server/routes/surveys_test.ts` - 问卷路由测试（7 个测试）
+- `server/routes/submissions_test.ts` - 提交路由测试（6 个测试）
 
 #### 测试覆盖
 **问卷路由测试（surveys_test.ts）：**
-- ✅ 获取问卷列表分页逻辑
-- ✅ 获取单个问卷详情
-- ✅ 创建问卷及问题
-- ✅ 删除问卷
-- ✅ 获取问卷结果和提交列表
+- ✅ GET / - 获取问卷列表分页逻辑
+- ✅ GET /:id - 获取单个问卷详情
+- ✅ GET /:id - 问卷不存在时返回 404
+- ✅ POST / - 创建问卷及问题
+- ✅ POST / - 缺少必要字段时返回 400
+- ✅ DELETE /:id - 删除问卷
+- ✅ GET /:id/results - 获取问卷结果和提交列表
 
 **提交路由测试（submissions_test.ts）：**
-- ✅ 成功创建提交记录
-- ✅ 为新用户创建账户
-- ✅ 检测重复提交
-- ✅ 验证无效问题 ID
+- ✅ POST / - 成功创建提交记录
+- ✅ POST / - 为新用户创建账户
+- ✅ POST / - 检测重复提交
+- ✅ POST / - 问卷不存在时返回 404
+- ✅ POST / - 缺少必要字段时返回 400
+- ✅ POST / - 检测无效问题 ID
 
 **工具函数测试（main_test.ts）：**
-- ✅ parseAnswerValue 解析星级评分
-- ✅ parseAnswerValue 解析文本输入
-- ✅ QuestionType 枚举值验证
+- ✅ parseAnswerValue - 解析星级评分
+- ✅ parseAnswerValue - 解析文本输入
+- ✅ QuestionType - 枚举值验证
 
 #### 测试结果
 ```
@@ -57,42 +66,89 @@ parseAnswerValue - 应该正确解析星级评分 ... ok (0ms)
 parseAnswerValue - 应该正确解析文本输入 ... ok (0ms)
 QuestionType - 枚举值应该正确 ... ok (0ms)
 
-running 4 tests from ./routes/submissions_test.ts
-submitAnswers - 应该成功创建提交记录 ... ok (1ms)
-submitAnswers - 应该为新用户创建账户 ... ok (0ms)
-submitAnswers - 应该检测到重复提交 ... ok (7ms)
-submitAnswers - 应该检测无效的问题ID ... ok (0ms)
+running 6 tests from ./routes/submissions_test.ts
+POST / - 应该成功创建提交记录 ... ok (5ms)
+POST / - 应该为新用户创建账户 ... ok (0ms)
+POST / - 应该检测到重复提交 ... ok (0ms)
+POST / - 问卷不存在时应该返回404 ... ok (0ms)
+POST / - 缺少必要字段时应该返回400 ... ok (0ms)
+POST / - 应该检测无效的问题ID ... ok (0ms)
 
-running 5 tests from ./routes/surveys_test.ts
-getSurveys - 应该正确处理分页 ... ok (0ms)
-getSurvey - 应该返回指定ID的问卷 ... ok (0ms)
-createSurvey - 应该正确创建问卷和问题 ... ok (0ms)
-deleteSurvey - 应该成功删除问卷 ... ok (0ms)
-getSurveyResults - 应该返回问卷和提交列表 ... ok (7ms)
+running 7 tests from ./routes/surveys_test.ts
+GET / - 应该返回分页的问卷列表 ... ok (2ms)
+GET /:id - 应该返回指定ID的问卷 ... ok (0ms)
+GET /:id - 问卷不存在时应该返回404 ... ok (0ms)
+POST / - 应该成功创建问卷 ... ok (2ms)
+POST / - 缺少必要字段时应该返回400 ... ok (0ms)
+DELETE /:id - 应该成功删除问卷 ... ok (0ms)
+GET /:id/results - 应该返回问卷和提交列表 ... ok (0ms)
 
-ok | 12 passed | 0 failed (113ms)
+ok | 16 passed | 0 failed (343ms)
 ```
 
 ### 4. 测试最佳实践
+✅ 使用 Oak testing utilities (`testing.createMockContext()`) 测试实际路由  
 ✅ 使用 Deno 标准库：`@std/testing/mock` 和 `@std/assert`  
-✅ 使用 stub 隔离外部依赖（Prisma）  
-✅ 测试关键业务逻辑而非实现细节  
-✅ 每个测试都使用 try-finally 确保 stub 被正确恢复  
-✅ Mock 数据库层避免实际数据库连接  
-✅ 测试覆盖正常流程和边界情况（重复提交、无效 ID 等）
+✅ 使用 stub 对真实的 `prisma` 实例进行存根，而不是创建假的 mock 对象  
+✅ 测试实际的 Oak 路由处理逻辑和业务代码  
+✅ 使用 `using` 关键字自动恢复 stub（disposable pattern）  
+✅ 测试覆盖正常流程和边界情况（重复提交、无效 ID、404 等）  
+✅ 不修改业务代码，只通过 stub 隔离数据库依赖
 
 ### 5. 代码改进
 **之前的问题：**
 - 代码重复：每个路由都有 `if (USE_MOCK_DATA)` 的分支
 - 混乱的逻辑：mock 数据和实际业务逻辑混在一起
 - 难以维护：修改业务逻辑需要同时修改 mock 和实际逻辑两套代码
+- 测试问题：测试的是 mock 本身而不是实际业务逻辑
 - 类型错误：error 参数没有正确的类型注解
 
 **改进后：**
 - 干净简洁：只有实际的业务逻辑
 - 易于理解：代码路径清晰，没有不必要的分支
-- 易于测试：使用标准的 stub 进行单元测试
+- 正确的测试方法：使用 Oak testing utilities 测试实际的路由处理器
+- 正确的 stub 使用：对真实的 prisma 实例进行 stub，而不是创建假对象
 - 类型安全：修复了所有 TypeScript 类型错误
+
+### 6. 测试示例
+
+**正确的测试方法：**
+```typescript
+import { testing } from "@oak/oak";
+import { stub } from "@std/testing/mock";
+import { prisma } from "../db.ts";
+import { surveyRouter } from "./surveys.ts";
+
+Deno.test("GET / - 应该返回分页的问卷列表", async () => {
+  // 对真实的 prisma 实例进行 stub
+  using findManyStub = stub(
+    prisma.survey,
+    "findMany",
+    () => Promise.resolve(mockSurveys as any)
+  );
+  
+  using countStub = stub(
+    prisma.survey,
+    "count",
+    () => Promise.resolve(10 as any)
+  );
+  
+  // 创建 Oak 模拟上下文
+  const ctx = testing.createMockContext({
+    path: "/?page=1&limit=10",
+    method: "GET",
+  });
+  
+  // 调用实际的路由中间件
+  const middleware = surveyRouter.routes();
+  await middleware(ctx, async () => {});
+  
+  // 验证响应
+  assertEquals(ctx.response.status, 200);
+  const body = ctx.response.body as any;
+  assertEquals(body.surveys.length, 2);
+});
+```
 
 ## 运行测试
 

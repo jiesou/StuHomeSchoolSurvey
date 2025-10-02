@@ -5,14 +5,18 @@
     "jsr:@oak/oak@^17.1.6": "17.1.6",
     "jsr:@std/assert@1": "1.0.14",
     "jsr:@std/assert@^1.0.13": "1.0.14",
+    "jsr:@std/async@^1.0.13": "1.0.14",
     "jsr:@std/bytes@1": "1.0.6",
     "jsr:@std/crypto@1": "1.0.5",
+    "jsr:@std/data-structures@^1.0.9": "1.0.9",
     "jsr:@std/encoding@1": "1.0.10",
     "jsr:@std/encoding@^1.0.10": "1.0.10",
+    "jsr:@std/fs@^1.0.19": "1.0.19",
     "jsr:@std/http@1": "1.0.20",
     "jsr:@std/internal@^1.0.10": "1.0.10",
     "jsr:@std/media-types@1": "1.1.0",
     "jsr:@std/path@1": "1.1.2",
+    "jsr:@std/path@^1.1.1": "1.1.2",
     "jsr:@std/testing@1": "1.0.15",
     "npm:@prisma/adapter-pg@*": "6.16.3",
     "npm:@prisma/adapter-pg@^6.16.3": "6.16.3",
@@ -43,7 +47,7 @@
         "jsr:@std/bytes",
         "jsr:@std/http",
         "jsr:@std/media-types",
-        "jsr:@std/path",
+        "jsr:@std/path@1",
         "npm:path-to-regexp"
       ]
     },
@@ -53,14 +57,26 @@
         "jsr:@std/internal"
       ]
     },
+    "@std/async@1.0.14": {
+      "integrity": "62e954a418652c704d37563a3e54a37d4cf0268a9dcaeac1660cc652880b5326"
+    },
     "@std/bytes@1.0.6": {
       "integrity": "f6ac6adbd8ccd99314045f5703e23af0a68d7f7e58364b47d2c7f408aeb5820a"
     },
     "@std/crypto@1.0.5": {
       "integrity": "0dcfbb319fe0bba1bd3af904ceb4f948cde1b92979ec1614528380ed308a3b40"
     },
+    "@std/data-structures@1.0.9": {
+      "integrity": "033d6e17e64bf1f84a614e647c1b015fa2576ae3312305821e1a4cb20674bb4d"
+    },
     "@std/encoding@1.0.10": {
       "integrity": "8783c6384a2d13abd5e9e87a7ae0520a30e9f56aeeaa3bdf910a3eaaf5c811a1"
+    },
+    "@std/fs@1.0.19": {
+      "integrity": "051968c2b1eae4d2ea9f79a08a3845740ef6af10356aff43d3e2ef11ed09fb06",
+      "dependencies": [
+        "jsr:@std/path@^1.1.1"
+      ]
     },
     "@std/http@1.0.20": {
       "integrity": "b5cc33fc001bccce65ed4c51815668c9891c69ccd908295997e983d8f56070a1",
@@ -83,7 +99,12 @@
     "@std/testing@1.0.15": {
       "integrity": "a490169f5ccb0f3ae9c94fbc69d2cd43603f2cffb41713a85f99bbb0e3087cbc",
       "dependencies": [
-        "jsr:@std/assert@^1.0.13"
+        "jsr:@std/assert@^1.0.13",
+        "jsr:@std/async",
+        "jsr:@std/data-structures",
+        "jsr:@std/fs",
+        "jsr:@std/internal",
+        "jsr:@std/path@^1.1.1"
       ]
     }
   },
