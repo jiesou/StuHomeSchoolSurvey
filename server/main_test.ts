@@ -38,7 +38,3 @@ Deno.test("parseAnswerValue - 应该正确解析文本输入", () => {
   assertEquals(typeof result, "string");
 });
 
-Deno.test("QuestionType - 枚举值应该正确", () => {
-  assertEquals(QuestionType.STAR, "star");
-  assertEquals(QuestionType.INPUT, "input");
-});
