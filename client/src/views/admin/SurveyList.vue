@@ -29,10 +29,17 @@
                     编辑问卷
                   </a-menu-item>
                   <a-menu-divider />
-                  <a-menu-item key="delete" danger>
-                    <DeleteOutlined />
-                    删除问卷
-                  </a-menu-item>
+                  <a-popconfirm
+                    :title="`确定要删除问卷「${record.title}」吗？`"
+                    ok-text="确定"
+                    cancel-text="取消"
+                    @confirm="deleteSurvey(record)"
+                  >
+                    <a-menu-item key="delete" danger>
+                      <DeleteOutlined />
+                      删除问卷
+                    </a-menu-item>
+                  </a-popconfirm>
                 </a-menu>
               </template>
               <a-button size="small">
@@ -50,7 +57,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { message, Modal } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { CopyOutlined, EditOutlined, DeleteOutlined, DownOutlined } from '@ant-design/icons-vue'
 import { apiService } from '../../api'
 import type { Survey, SurveyListResponse } from '../../types'
@@ -144,9 +151,6 @@ function handleMenuClick(e: any, record: Survey) {
     case 'edit':
       editSurvey(record.id)
       break
-    case 'delete':
-      confirmDelete(record)
-      break
   }
 }
 
@@ -158,23 +162,14 @@ function editSurvey(id: number) {
   router.push(`/admin/edit/${id}`)
 }
 
-function confirmDelete(survey: Survey) {
-  Modal.confirm({
-    title: '确认删除',
-    content: `确定要删除问卷"${survey.title}"吗？此操作不可撤销。`,
-    okText: '确定',
-    okType: 'danger',
-    cancelText: '取消',
-    onOk: async () => {
-      try {
-        await apiService.deleteSurvey(survey.id)
-        message.success('问卷删除成功')
-        loadSurveys()
-      } catch (error) {
-        message.error('删除失败：' + (error as Error).message)
-      }
-    }
-  })
+async function deleteSurvey(survey: Survey) {
+  try {
+    await apiService.deleteSurvey(survey.id)
+    message.success('问卷删除成功')
+    loadSurveys()
+  } catch (error) {
+    message.error('删除失败：' + (error as Error).message)
+  }
 }
 
 onMounted(() => {
