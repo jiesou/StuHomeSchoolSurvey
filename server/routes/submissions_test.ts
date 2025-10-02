@@ -6,11 +6,6 @@ import { submissionRouter } from "./submissions.ts";
 import { prisma } from "../db.ts";
 import { QuestionType, UserRole } from "../types.ts";
 
-// 辅助函数：创建 JSON body stream
-function createJsonBody(data: unknown): ReadableStream<Uint8Array> {
-  return ReadableStream.from([new TextEncoder().encode(JSON.stringify(data))]);
-}
-
 // 测试提交答案 - 正常流程
 Deno.test("POST / - 应该成功创建提交记录", async () => {
   const mockSurvey = {
@@ -106,7 +101,7 @@ Deno.test("POST / - 应该成功创建提交记录", async () => {
     path: "/",
     method: "POST",
     headers: [["content-type", "application/json"]],
-    body: createJsonBody(requestBody),
+    body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
   });
 
   const middleware = submissionRouter.routes();
@@ -209,7 +204,7 @@ Deno.test("POST / - 应该为新用户创建账户", async () => {
     path: "/",
     method: "POST",
     headers: [["content-type", "application/json"]],
-    body: createJsonBody(requestBody),
+    body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
   });
 
   const middleware = submissionRouter.routes();
@@ -291,7 +286,7 @@ Deno.test("POST / - 应该检测到重复提交", async () => {
     path: "/",
     method: "POST",
     headers: [["content-type", "application/json"]],
-    body: createJsonBody(requestBody),
+    body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
   });
 
   const middleware = submissionRouter.routes();
@@ -327,7 +322,7 @@ Deno.test("POST / - 问卷不存在时应该返回404", async () => {
     path: "/",
     method: "POST",
     headers: [["content-type", "application/json"]],
-    body: createJsonBody(requestBody),
+    body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
   });
 
   const middleware = submissionRouter.routes();
@@ -351,7 +346,7 @@ Deno.test("POST / - 缺少必要字段时应该返回400", async () => {
     path: "/",
     method: "POST",
     headers: [["content-type", "application/json"]],
-    body: createJsonBody(requestBody),
+    body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
   });
 
   const middleware = submissionRouter.routes();
@@ -431,7 +426,7 @@ Deno.test("POST / - 应该检测无效的问题ID", async () => {
     path: "/",
     method: "POST",
     headers: [["content-type", "application/json"]],
-    body: createJsonBody(requestBody),
+    body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
   });
 
   const middleware = submissionRouter.routes();

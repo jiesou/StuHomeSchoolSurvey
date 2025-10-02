@@ -6,11 +6,6 @@ import { surveyRouter } from "./surveys.ts";
 import { prisma } from "../db.ts";
 import { QuestionType } from "../types.ts";
 
-// 辅助函数：创建 JSON body stream
-function createJsonBody(data: unknown): ReadableStream<Uint8Array> {
-  return ReadableStream.from([new TextEncoder().encode(JSON.stringify(data))]);
-}
-
 // 测试获取问卷列表
 Deno.test("GET / - 应该返回分页的问卷列表", async () => {
   const mockSurveys = [
@@ -178,7 +173,7 @@ Deno.test("POST / - 应该成功创建问卷", async () => {
     path: "/",
     method: "POST",
     headers: [["content-type", "application/json"]],
-    body: createJsonBody(requestBody),
+    body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
   });
 
   const middleware = surveyRouter.routes();
@@ -202,7 +197,7 @@ Deno.test("POST / - 缺少必要字段时应该返回400", async () => {
     path: "/",
     method: "POST",
     headers: [["content-type", "application/json"]],
-    body: createJsonBody(requestBody),
+    body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
   });
 
   const middleware = surveyRouter.routes();

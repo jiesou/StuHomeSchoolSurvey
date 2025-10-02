@@ -119,11 +119,6 @@ import { stub } from "@std/testing/mock";
 import { prisma } from "../db.ts";
 import { surveyRouter } from "./surveys.ts";
 
-// 辅助函数：创建 JSON body stream
-function createJsonBody(data: unknown): ReadableStream<Uint8Array> {
-  return ReadableStream.from([new TextEncoder().encode(JSON.stringify(data))]);
-}
-
 Deno.test("GET / - 应该返回分页的问卷列表", async () => {
   // 对真实的 prisma 实例进行 stub（使用 as any 处理 Prisma 类型）
   using findManyStub = stub(
@@ -170,7 +165,7 @@ Deno.test("POST / - 应该成功创建问卷", async () => {
     path: "/",
     method: "POST",
     headers: [["content-type", "application/json"]],
-    body: createJsonBody(requestBody), // 使用辅助函数创建 body
+    body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
   });
 
   const middleware = surveyRouter.routes();
