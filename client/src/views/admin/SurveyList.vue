@@ -146,7 +146,7 @@ function copyLink(id: number) {
 function handleMenuClick(e: any, record: Survey) {
   switch (e.key) {
     case 'clone':
-      cloneSurvey(record.id)
+      cloneSurvey(record)
       break
     case 'edit':
       editSurvey(record.id)
@@ -154,8 +154,12 @@ function handleMenuClick(e: any, record: Survey) {
   }
 }
 
-function cloneSurvey(id: number) {
-  router.push(`/admin/create?clone=true&id=${id}`)
+function cloneSurvey(survey: Survey) {
+  // 通过 router state 传递问卷数据
+  router.push({
+    path: '/admin/create',
+    state: { cloneSurvey: JSON.parse(JSON.stringify(survey)) }
+  })
 }
 
 function editSurvey(id: number) {

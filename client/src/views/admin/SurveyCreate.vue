@@ -132,7 +132,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { apiService } from '../../api'
-import type { CreateSurveyRequest } from '../../types'
+import type { CreateSurveyRequest, Survey } from '../../types'
 import { QuestionType } from '../../types'
 
 const router = useRouter()
@@ -141,13 +141,13 @@ const formRef = ref()
 const submitting = ref(false)
 const loading = ref(false)
 
-const surveyId = computed(() => {
-  const id = route.params.id || route.query.id
+// 编辑模式：路由参数中有 id
+const editId = computed(() => {
+  const id = route.params.id
   return id ? parseInt(id as string) : null
 })
 
-const isEditMode = computed(() => !!route.params.id)
-const isCloneMode = computed(() => route.query.clone === 'true')
+const isEditMode = computed(() => !!editId.value)
 
 const formData = reactive<CreateSurveyRequest>({
   title: '',
@@ -174,11 +174,12 @@ const rules = {
   week: [{ required: true, message: '请输入周次' }]
 }
 
+// 加载问卷数据（用于编辑）
 async function loadSurvey(id: number) {
   loading.value = true
   try {
     const survey = await apiService.getSurvey(id)
-    formData.title = isCloneMode.value ? `${survey.title} - 副本` : survey.title
+    formData.title = survey.title
     formData.description = survey.description || ''
     formData.year = survey.year
     formData.semester = survey.semester
@@ -195,6 +196,22 @@ async function loadSurvey(id: number) {
     router.push('/admin')
   } finally {
     loading.value = false
+  }
+}
+
+// 初始化表单数据（用于克隆）
+function initializeFormData(survey: Survey) {
+  formData.title = `${survey.title} - 副本`
+  formData.description = survey.description || ''
+  formData.year = survey.year
+  formData.semester = survey.semester
+  formData.week = survey.week
+  
+  if (survey.questions && survey.questions.length > 0) {
+    formData.questions = survey.questions.map(q => ({
+      description: q.description || '',
+      config: q.config
+    }))
   }
 }
 
@@ -233,8 +250,8 @@ async function handleSubmit() {
     await formRef.value.validate()
     
     submitting.value = true
-    if (isEditMode.value && !isCloneMode.value && surveyId.value) {
-      await apiService.updateSurvey(surveyId.value, formData)
+    if (isEditMode.value && editId.value) {
+      await apiService.updateSurvey(editId.value, formData)
       message.success('问卷更新成功')
     } else {
       await apiService.createSurvey(formData)
@@ -242,15 +259,20 @@ async function handleSubmit() {
     }
     router.push('/admin')
   } catch (error) {
-    message.error((isEditMode.value && !isCloneMode.value ? '更新' : '创建') + '失败：' + (error as Error).message)
+    message.error((isEditMode.value ? '更新' : '创建') + '失败：' + (error as Error).message)
   } finally {
     submitting.value = false
   }
 }
 
 onMounted(() => {
-  if (surveyId.value) {
-    loadSurvey(surveyId.value)
+  // 处理克隆：通过 router state 传递数据
+  const cloneSurvey = history.state?.cloneSurvey as Survey | undefined
+  if (cloneSurvey) {
+    initializeFormData(cloneSurvey)
+  } else if (editId.value) {
+    // 编辑模式：加载问卷数据
+    loadSurvey(editId.value)
   }
 })
 </script>
