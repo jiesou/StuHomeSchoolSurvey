@@ -4,6 +4,7 @@
     "jsr:@oak/commons@1": "1.0.1",
     "jsr:@oak/oak@^17.1.6": "17.1.6",
     "jsr:@std/assert@1": "1.0.14",
+    "jsr:@std/assert@^1.0.13": "1.0.14",
     "jsr:@std/bytes@1": "1.0.6",
     "jsr:@std/crypto@1": "1.0.5",
     "jsr:@std/encoding@1": "1.0.10",
@@ -12,6 +13,7 @@
     "jsr:@std/internal@^1.0.10": "1.0.10",
     "jsr:@std/media-types@1": "1.1.0",
     "jsr:@std/path@1": "1.1.2",
+    "jsr:@std/testing@1": "1.0.15",
     "npm:@prisma/adapter-pg@*": "6.16.3",
     "npm:@prisma/adapter-pg@^6.16.3": "6.16.3",
     "npm:@prisma/client@^6.16.3": "6.16.3_prisma@6.16.3",
@@ -25,7 +27,7 @@
     "@oak/commons@1.0.1": {
       "integrity": "889ff210f0b4292591721be07244ecb1b5c118742f5273c70cf30d7cd4184d0c",
       "dependencies": [
-        "jsr:@std/assert",
+        "jsr:@std/assert@1",
         "jsr:@std/bytes",
         "jsr:@std/crypto",
         "jsr:@std/encoding@1",
@@ -37,7 +39,7 @@
       "integrity": "c7eef2eec733fba8e72b679bba3b8cf2fceccf5ef489a8b8fb43571908c0335d",
       "dependencies": [
         "jsr:@oak/commons",
-        "jsr:@std/assert",
+        "jsr:@std/assert@1",
         "jsr:@std/bytes",
         "jsr:@std/http",
         "jsr:@std/media-types",
@@ -76,6 +78,12 @@
       "integrity": "c0b13b97dfe06546d5e16bf3966b1cadf92e1cc83e56ba5476ad8b498d9e3038",
       "dependencies": [
         "jsr:@std/internal"
+      ]
+    },
+    "@std/testing@1.0.15": {
+      "integrity": "a490169f5ccb0f3ae9c94fbc69d2cd43603f2cffb41713a85f99bbb0e3087cbc",
+      "dependencies": [
+        "jsr:@std/assert@^1.0.13"
       ]
     }
   },
@@ -377,7 +385,8 @@
   "workspace": {
     "dependencies": [
       "jsr:@oak/oak@^17.1.6",
-      "jsr:@std/assert@1"
+      "jsr:@std/assert@1",
+      "jsr:@std/testing@1"
     ],
     "packageJson": {
       "dependencies": [

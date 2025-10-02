@@ -1,8 +1,44 @@
-import { assertEquals } from "@std/assert";
-import { app } from "./main.ts";
+import { assertEquals, assertExists } from "@std/assert";
 
-Deno.test("健康检查端点测试", async () => {
-  // 这是一个基本的应用启动测试
-  // 在实际环境中，这里应该使用 supertest 类似的工具来测试 HTTP 端点
-  assertEquals(typeof app, "object");
+// 测试类型定义和工具函数
+import { QuestionType, parseAnswerValue } from "./types.ts";
+
+Deno.test("parseAnswerValue - 应该正确解析星级评分", () => {
+  const answer = {
+    id: 1,
+    question_id: 1,
+    submission_id: 1,
+    value: "5"
+  };
+  const config = {
+    type: QuestionType.STAR,
+    maxStars: 5,
+    required: true
+  };
+
+  const result = parseAnswerValue(answer, config);
+  assertEquals(result, 5);
+  assertEquals(typeof result, "number");
+});
+
+Deno.test("parseAnswerValue - 应该正确解析文本输入", () => {
+  const answer = {
+    id: 1,
+    question_id: 1,
+    submission_id: 1,
+    value: "这是一段文本"
+  };
+  const config = {
+    type: QuestionType.INPUT,
+    required: true
+  };
+
+  const result = parseAnswerValue(answer, config);
+  assertEquals(result, "这是一段文本");
+  assertEquals(typeof result, "string");
+});
+
+Deno.test("QuestionType - 枚举值应该正确", () => {
+  assertEquals(QuestionType.STAR, "star");
+  assertEquals(QuestionType.INPUT, "input");
 });
