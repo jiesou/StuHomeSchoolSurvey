@@ -18,18 +18,18 @@ import zhCN from 'ant-design-vue/es/locale/zh_CN';
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 16px;
+
 }
 
 @media (min-width: 768px) {
   #container {
-    padding: 0 24px;
+
   }
 }
 
 @media (min-width: 1200px) {
   #container {
-    padding: 0 32px;
+
   }
 }
 </style>

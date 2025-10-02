@@ -30,3 +30,9 @@ body {
 .ant-card-extra {
   margin-left: auto;
 }
+
+@media (max-width: 767px) {
+  .ant-page-header-heading-title {
+    font-size: 18px;
+  }
+}

@@ -2,55 +2,58 @@
   <div>
     <a-page-header title="问卷列表" />
 
-    <a-table :dataSource="surveys" :columns="columns" :pagination="pagination" :loading="loading"
-      @change="handleTableChange" rowKey="id">
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'semester'">
-          {{ record.semester === 1 ? '第一学期' : '第二学期' }}
-        </template>
+    <div style="overflow-x: auto;">
+      <a-table :dataSource="surveys" :columns="columns" :pagination="pagination" :loading="loading"
+        :style="{ minWidth: '800px' }"
+        @change="handleTableChange" rowKey="id">
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'semester'">
+            {{ record.semester === 1 ? '第一学期' : '第二学期' }}
+          </template>
 
-        <template v-if="column.key === 'actions'">
-          <a-space>
-            <a-button type="primary" size="small" @click="viewResults(record.id)">
-              查看结果
-            </a-button>
-            <a-button size="small" @click="copyLink(record.id)">
-              复制问卷链接
-            </a-button>
-            <a-dropdown>
-              <template #overlay>
-                <a-menu @click="(e: any) => handleMenuClick(e, record)">
-                  <a-menu-item key="clone">
-                    <CopyOutlined />
-                    克隆
-                  </a-menu-item>
-                  <a-menu-item key="edit">
-                    <EditOutlined />
-                    编辑
-                  </a-menu-item>
-                  <a-menu-divider />
-                  <a-popconfirm
-                    :title="`确定要删除问卷「${record.title}」吗？`"
-                    ok-text="确定"
-                    cancel-text="取消"
-                    @confirm="deleteSurvey(record)"
-                  >
-                    <a-menu-item key="delete" danger>
-                      <DeleteOutlined />
-                      删除
-                    </a-menu-item>
-                  </a-popconfirm>
-                </a-menu>
-              </template>
-              <a-button size="small">
-                更多操作
-                <DownOutlined />
+          <template v-if="column.key === 'actions'">
+            <a-space>
+              <a-button type="primary" size="small" @click="viewResults(record.id)">
+                查看结果
               </a-button>
-            </a-dropdown>
-          </a-space>
+              <a-button size="small" @click="copyLink(record.id)">
+                复制问卷链接
+              </a-button>
+              <a-dropdown>
+                <template #overlay>
+                  <a-menu @click="(e: any) => handleMenuClick(e, record)">
+                    <a-menu-item key="clone">
+                      <CopyOutlined />
+                      克隆
+                    </a-menu-item>
+                    <a-menu-item key="edit">
+                      <EditOutlined />
+                      编辑
+                    </a-menu-item>
+                    <a-menu-divider />
+                    <a-popconfirm
+                      :title="`确定要删除问卷「${record.title}」吗？`"
+                      ok-text="确定"
+                      cancel-text="取消"
+                      @confirm="deleteSurvey(record)"
+                    >
+                      <a-menu-item key="delete" danger>
+                        <DeleteOutlined />
+                        删除
+                      </a-menu-item>
+                    </a-popconfirm>
+                  </a-menu>
+                </template>
+                <a-button size="small">
+                  更多操作
+                  <DownOutlined />
+                </a-button>
+              </a-dropdown>
+            </a-space>
+          </template>
         </template>
-      </template>
-    </a-table>
+      </a-table>
+    </div>
   </div>
 </template>
 

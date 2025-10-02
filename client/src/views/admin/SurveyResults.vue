@@ -1,7 +1,7 @@
 <template>
   <div>
     <a-page-header 
-      :title="`问卷结果：${survey?.title}`"
+      :title="`问卷结果：${survey?.title || '...'}`"
       @back="$router.push('/admin')"
     />
     
@@ -21,7 +21,7 @@
       :loading="loading"
       @change="handleTableChange"
       rowKey="id"
-      :scroll="{ x: 800 }"
+      :scroll="{ x: 70+120+160+(survey?.questions?.length || 0)*150 }"
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'submitted_at'">
@@ -71,7 +71,8 @@ const columns = computed(() => {
       dataIndex: ['user', 'name'],
       key: 'name',
       fixed: 'left' as const,
-      width: 100
+      resizable: true,
+      width: 70
     },
     {
       title: '学号',
@@ -92,7 +93,6 @@ const columns = computed(() => {
     key: `question_${question.id}`,
     questionId: question.id,
     questionConfig: question.config,
-    width: 150
   }))
   
   return [...baseColumns, ...questionColumns]
