@@ -6,6 +6,11 @@ import { submissionRouter } from "./submissions.ts";
 import { prisma } from "../db.ts";
 import { QuestionType, UserRole } from "../types.ts";
 
+// 辅助函数：创建 JSON body stream
+function createJsonBody(data: unknown): ReadableStream<Uint8Array> {
+  return ReadableStream.from([new TextEncoder().encode(JSON.stringify(data))]);
+}
+
 // 测试提交答案 - 正常流程
 Deno.test("POST / - 应该成功创建提交记录", async () => {
   const mockSurvey = {
@@ -64,25 +69,25 @@ Deno.test("POST / - 应该成功创建提交记录", async () => {
   using findUniqueSurveyStub = stub(
     prisma.survey,
     "findUnique",
-    () => Promise.resolve(mockSurvey as any)
+    () => Promise.resolve(mockSurvey) as any
   );
 
   using findFirstUserStub = stub(
     prisma.user,
     "findFirst",
-    () => Promise.resolve(mockUser as any)
+    () => Promise.resolve(mockUser) as any
   );
 
   using findUniqueSubmissionStub = stub(
     prisma.submission,
     "findUnique",
-    () => Promise.resolve(null as any)
+    () => Promise.resolve(null) as any
   );
 
   using createSubmissionStub = stub(
     prisma.submission,
     "create",
-    () => Promise.resolve(mockSubmission as any)
+    () => Promise.resolve(mockSubmission) as any
   );
 
   const requestBody = {
@@ -97,22 +102,16 @@ Deno.test("POST / - 应该成功创建提交记录", async () => {
     ]
   };
 
-  const bodyStream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(new TextEncoder().encode(JSON.stringify(requestBody)));
-      controller.close();
-    },
-  });
-
   const ctx = testing.createMockContext({
     path: "/",
     method: "POST",
     headers: [["content-type", "application/json"]],
-    body: bodyStream,
+    body: createJsonBody(requestBody),
   });
 
   const middleware = submissionRouter.routes();
-  await middleware(ctx, async () => {});
+  const next = testing.createMockNext();
+  await middleware(ctx, next);
 
   assertEquals(ctx.response.status, 201);
   const body = ctx.response.body as any;
@@ -167,31 +166,31 @@ Deno.test("POST / - 应该为新用户创建账户", async () => {
   using findUniqueSurveyStub = stub(
     prisma.survey,
     "findUnique",
-    () => Promise.resolve(mockSurvey as any)
+    () => Promise.resolve(mockSurvey) as any
   );
 
   using findFirstUserStub = stub(
     prisma.user,
     "findFirst",
-    () => Promise.resolve(null as any)
+    () => Promise.resolve(null) as any
   );
 
   using createUserStub = stub(
     prisma.user,
     "create",
-    () => Promise.resolve(newUser as any)
+    () => Promise.resolve(newUser) as any
   );
 
   using findUniqueSubmissionStub = stub(
     prisma.submission,
     "findUnique",
-    () => Promise.resolve(null as any)
+    () => Promise.resolve(null) as any
   );
 
   using createSubmissionStub = stub(
     prisma.submission,
     "create",
-    () => Promise.resolve(mockSubmission as any)
+    () => Promise.resolve(mockSubmission) as any
   );
 
   const requestBody = {
@@ -205,22 +204,17 @@ Deno.test("POST / - 应该为新用户创建账户", async () => {
     ]
   };
 
-  const bodyStream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(new TextEncoder().encode(JSON.stringify(requestBody)));
-      controller.close();
-    },
-  });
 
   const ctx = testing.createMockContext({
     path: "/",
     method: "POST",
     headers: [["content-type", "application/json"]],
-    body: bodyStream,
+    body: createJsonBody(requestBody),
   });
 
   const middleware = submissionRouter.routes();
-  await middleware(ctx, async () => {});
+  const next = testing.createMockNext();
+  await middleware(ctx, next);
 
   assertEquals(ctx.response.status, 201);
   const body = ctx.response.body as any;
@@ -266,19 +260,19 @@ Deno.test("POST / - 应该检测到重复提交", async () => {
   using findUniqueSurveyStub = stub(
     prisma.survey,
     "findUnique",
-    () => Promise.resolve(mockSurvey as any)
+    () => Promise.resolve(mockSurvey) as any
   );
 
   using findFirstUserStub = stub(
     prisma.user,
     "findFirst",
-    () => Promise.resolve(mockUser as any)
+    () => Promise.resolve(mockUser) as any
   );
 
   using findUniqueSubmissionStub = stub(
     prisma.submission,
     "findUnique",
-    () => Promise.resolve(existingSubmission as any)
+    () => Promise.resolve(existingSubmission) as any
   );
 
   const requestBody = {
@@ -292,22 +286,17 @@ Deno.test("POST / - 应该检测到重复提交", async () => {
     ]
   };
 
-  const bodyStream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(new TextEncoder().encode(JSON.stringify(requestBody)));
-      controller.close();
-    },
-  });
 
   const ctx = testing.createMockContext({
     path: "/",
     method: "POST",
     headers: [["content-type", "application/json"]],
-    body: bodyStream,
+    body: createJsonBody(requestBody),
   });
 
   const middleware = submissionRouter.routes();
-  await middleware(ctx, async () => {});
+  const next = testing.createMockNext();
+  await middleware(ctx, next);
 
   assertEquals(ctx.response.status, 409);
   const body = ctx.response.body as any;
@@ -319,7 +308,7 @@ Deno.test("POST / - 问卷不存在时应该返回404", async () => {
   using findUniqueSurveyStub = stub(
     prisma.survey,
     "findUnique",
-    () => Promise.resolve(null as any)
+    () => Promise.resolve(null) as any
   );
 
   const requestBody = {
@@ -333,22 +322,17 @@ Deno.test("POST / - 问卷不存在时应该返回404", async () => {
     ]
   };
 
-  const bodyStream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(new TextEncoder().encode(JSON.stringify(requestBody)));
-      controller.close();
-    },
-  });
 
   const ctx = testing.createMockContext({
     path: "/",
     method: "POST",
     headers: [["content-type", "application/json"]],
-    body: bodyStream,
+    body: createJsonBody(requestBody),
   });
 
   const middleware = submissionRouter.routes();
-  await middleware(ctx, async () => {});
+  const next = testing.createMockNext();
+  await middleware(ctx, next);
 
   assertEquals(ctx.response.status, 404);
   const body = ctx.response.body as any;
@@ -362,22 +346,17 @@ Deno.test("POST / - 缺少必要字段时应该返回400", async () => {
     // 缺少 user 和 answers
   };
 
-  const bodyStream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(new TextEncoder().encode(JSON.stringify(requestBody)));
-      controller.close();
-    },
-  });
 
   const ctx = testing.createMockContext({
     path: "/",
     method: "POST",
     headers: [["content-type", "application/json"]],
-    body: bodyStream,
+    body: createJsonBody(requestBody),
   });
 
   const middleware = submissionRouter.routes();
-  await middleware(ctx, async () => {});
+  const next = testing.createMockNext();
+  await middleware(ctx, next);
 
   assertEquals(ctx.response.status, 400);
   const body = ctx.response.body as any;
@@ -420,19 +399,19 @@ Deno.test("POST / - 应该检测无效的问题ID", async () => {
   using findUniqueSurveyStub = stub(
     prisma.survey,
     "findUnique",
-    () => Promise.resolve(mockSurvey as any)
+    () => Promise.resolve(mockSurvey) as any
   );
 
   using findFirstUserStub = stub(
     prisma.user,
     "findFirst",
-    () => Promise.resolve(mockUser as any)
+    () => Promise.resolve(mockUser) as any
   );
 
   using findUniqueSubmissionStub = stub(
     prisma.submission,
     "findUnique",
-    () => Promise.resolve(null as any)
+    () => Promise.resolve(null) as any
   );
 
   const requestBody = {
@@ -447,22 +426,17 @@ Deno.test("POST / - 应该检测无效的问题ID", async () => {
     ]
   };
 
-  const bodyStream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(new TextEncoder().encode(JSON.stringify(requestBody)));
-      controller.close();
-    },
-  });
 
   const ctx = testing.createMockContext({
     path: "/",
     method: "POST",
     headers: [["content-type", "application/json"]],
-    body: bodyStream,
+    body: createJsonBody(requestBody),
   });
 
   const middleware = submissionRouter.routes();
-  await middleware(ctx, async () => {});
+  const next = testing.createMockNext();
+  await middleware(ctx, next);
 
   assertEquals(ctx.response.status, 400);
   const body = ctx.response.body as any;

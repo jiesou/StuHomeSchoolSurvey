@@ -119,18 +119,23 @@ import { stub } from "@std/testing/mock";
 import { prisma } from "../db.ts";
 import { surveyRouter } from "./surveys.ts";
 
+// 辅助函数：创建 JSON body stream
+function createJsonBody(data: unknown): ReadableStream<Uint8Array> {
+  return ReadableStream.from([new TextEncoder().encode(JSON.stringify(data))]);
+}
+
 Deno.test("GET / - 应该返回分页的问卷列表", async () => {
-  // 对真实的 prisma 实例进行 stub
+  // 对真实的 prisma 实例进行 stub（使用 as any 处理 Prisma 类型）
   using findManyStub = stub(
     prisma.survey,
     "findMany",
-    () => Promise.resolve(mockSurveys as any)
+    () => Promise.resolve(mockSurveys) as any
   );
   
   using countStub = stub(
     prisma.survey,
     "count",
-    () => Promise.resolve(10 as any)
+    () => Promise.resolve(10) as any
   );
   
   // 创建 Oak 模拟上下文
@@ -139,14 +144,40 @@ Deno.test("GET / - 应该返回分页的问卷列表", async () => {
     method: "GET",
   });
   
-  // 调用实际的路由中间件
+  // 调用实际的路由中间件，使用 createMockNext()
   const middleware = surveyRouter.routes();
-  await middleware(ctx, async () => {});
+  const next = testing.createMockNext();
+  await middleware(ctx, next);
   
   // 验证响应
   assertEquals(ctx.response.status, 200);
   const body = ctx.response.body as any;
   assertEquals(body.surveys.length, 2);
+});
+
+// POST 请求示例
+Deno.test("POST / - 应该成功创建问卷", async () => {
+  const requestBody = {
+    title: "新问卷",
+    description: "新描述",
+    year: "2024-2025",
+    semester: 1,
+    week: 1,
+    questions: [...]
+  };
+
+  const ctx = testing.createMockContext({
+    path: "/",
+    method: "POST",
+    headers: [["content-type", "application/json"]],
+    body: createJsonBody(requestBody), // 使用辅助函数创建 body
+  });
+
+  const middleware = surveyRouter.routes();
+  const next = testing.createMockNext();
+  await middleware(ctx, next);
+
+  assertEquals(ctx.response.status, 201);
 });
 ```
 
@@ -154,6 +185,9 @@ Deno.test("GET / - 应该返回分页的问卷列表", async () => {
 
 ```bash
 cd server
+# 需要先生成 Prisma Client
+npx prisma generate
+# 运行测试（不需要 --no-check）
 deno test --allow-all
 ```
 
