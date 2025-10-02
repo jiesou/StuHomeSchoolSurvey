@@ -30,8 +30,8 @@
           <a-col :span="8">
             <a-form-item label="学期" name="semester">
               <a-select v-model:value="formData.semester" placeholder="请选择学期">
-                <a-select-option :value="1">上学期</a-select-option>
-                <a-select-option :value="2">下学期</a-select-option>
+                <a-select-option :value="1">第一学期</a-select-option>
+                <a-select-option :value="2">第二学期</a-select-option>
               </a-select>
             </a-form-item>
           </a-col>

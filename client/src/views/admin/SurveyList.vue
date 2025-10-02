@@ -6,7 +6,7 @@
       @change="handleTableChange" rowKey="id">
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'semester'">
-          {{ record.semester === 1 ? '上学期' : '下学期' }}
+          {{ record.semester === 1 ? '第一学期' : '第二学期' }}
         </template>
 
         <template v-if="column.key === 'actions'">
@@ -22,11 +22,11 @@
                 <a-menu @click="(e: any) => handleMenuClick(e, record)">
                   <a-menu-item key="clone">
                     <CopyOutlined />
-                    克隆问卷
+                    克隆
                   </a-menu-item>
                   <a-menu-item key="edit">
                     <EditOutlined />
-                    编辑问卷
+                    编辑
                   </a-menu-item>
                   <a-menu-divider />
                   <a-popconfirm
@@ -37,7 +37,7 @@
                   >
                     <a-menu-item key="delete" danger>
                       <DeleteOutlined />
-                      删除问卷
+                      删除
                     </a-menu-item>
                   </a-popconfirm>
                 </a-menu>
