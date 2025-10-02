@@ -2,12 +2,8 @@
 import { Router } from "@oak/oak";
 import { prisma } from "../db.ts";
 import { CreateSurveyRequest, SurveyListResponse, SurveyResultResponse, Survey, Submission } from "../types.ts";
-import { mockDataService } from "../mock-data.ts";
 
 const surveyRouter = new Router();
-
-// 检查是否使用模拟数据
-const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true"; // 默认使用模拟数据
 
 // 获取问卷列表（分页）
 surveyRouter.get("/", async (ctx) => {
@@ -16,35 +12,29 @@ surveyRouter.get("/", async (ctx) => {
   const limit = parseInt(url.searchParams.get("limit") || "10");
 
   try {
-    let response: SurveyListResponse;
+    const skip = (page - 1) * limit;
     
-    if (USE_MOCK_DATA) {
-      response = await mockDataService.getSurveys(page, limit);
-    } else {
-      const skip = (page - 1) * limit;
-      
-      const [surveys, total] = await Promise.all([
-        prisma.survey.findMany({
-          skip,
-          take: limit,
-          orderBy: { created_at: 'desc' },
-          include: {
-            questions: true,
-            _count: {
-              select: { submissions: true }
-            }
+    const [surveys, total] = await Promise.all([
+      prisma.survey.findMany({
+        skip,
+        take: limit,
+        orderBy: { created_at: 'desc' },
+        include: {
+          questions: true,
+          _count: {
+            select: { submissions: true }
           }
-        }),
-        prisma.survey.count()
-      ]);
+        }
+      }),
+      prisma.survey.count()
+    ]);
 
-      response = {
-        surveys: surveys as unknown as Survey[],
-        total,
-        page,
-        limit,
-      };
-    }
+    const response: SurveyListResponse = {
+      surveys: surveys as unknown as Survey[],
+      total,
+      page,
+      limit,
+    };
 
     ctx.response.status = 200;
     ctx.response.body = response;
@@ -65,19 +55,13 @@ surveyRouter.get("/:id", async (ctx) => {
   }
 
   try {
-    let survey: Survey | null;
-    
-    if (USE_MOCK_DATA) {
-      survey = await mockDataService.getSurvey(id);
-    } else {
-      const result = await prisma.survey.findUnique({
-        where: { id },
-        include: {
-          questions: true,
-        },
-      });
-      survey = result as unknown as Survey;
-    }
+    const result = await prisma.survey.findUnique({
+      where: { id },
+      include: {
+        questions: true,
+      },
+    });
+    const survey = result as unknown as Survey | null;
 
     if (!survey) {
       ctx.response.status = 404;
@@ -105,31 +89,25 @@ surveyRouter.post("/", async (ctx) => {
       return;
     }
 
-    let survey: Survey;
-    
-    if (USE_MOCK_DATA) {
-      survey = await mockDataService.createSurvey(body);
-    } else {
-      const result = await prisma.survey.create({
-        data: {
-          title: body.title,
-          description: body.description,
-          year: body.year,
-          semester: body.semester,
-          week: body.week,
-          questions: {
-            create: body.questions.map((q: any) => ({
-              description: q.description,
-              config: q.config,
-            }))
-          }
-        },
-        include: {
-          questions: true,
-        },
-      });
-      survey = result as unknown as Survey;
-    }
+    const result = await prisma.survey.create({
+      data: {
+        title: body.title,
+        description: body.description,
+        year: body.year,
+        semester: body.semester,
+        week: body.week,
+        questions: {
+          create: body.questions.map((q: any) => ({
+            description: q.description,
+            config: q.config,
+          }))
+        }
+      },
+      include: {
+        questions: true,
+      },
+    });
+    const survey = result as unknown as Survey;
 
     ctx.response.status = 201;
     ctx.response.body = survey;
@@ -158,46 +136,32 @@ surveyRouter.put("/:id", async (ctx) => {
       return;
     }
 
-    let survey: Survey | null;
-    
-    if (USE_MOCK_DATA) {
-      ctx.response.status = 501;
-      ctx.response.body = { error: "模拟数据模式不支持更新" };
-      return;
-    } else {
-      // 删除旧问题
-      await prisma.question.deleteMany({
-        where: { survey_id: id }
-      });
+    // 删除旧问题
+    await prisma.question.deleteMany({
+      where: { survey_id: id }
+    });
 
-      // 更新问卷和创建新问题
-      const result = await prisma.survey.update({
-        where: { id },
-        data: {
-          title: body.title,
-          description: body.description,
-          year: body.year,
-          semester: body.semester,
-          week: body.week,
-          questions: {
-            create: body.questions.map((q: any) => ({
-              description: q.description,
-              config: q.config,
-            }))
-          }
-        },
-        include: {
-          questions: true,
-        },
-      });
-      survey = result as unknown as Survey;
-    }
-
-    if (!survey) {
-      ctx.response.status = 404;
-      ctx.response.body = { error: "问卷不存在" };
-      return;
-    }
+    // 更新问卷和创建新问题
+    const result = await prisma.survey.update({
+      where: { id },
+      data: {
+        title: body.title,
+        description: body.description,
+        year: body.year,
+        semester: body.semester,
+        week: body.week,
+        questions: {
+          create: body.questions.map((q: any) => ({
+            description: q.description,
+            config: q.config,
+          }))
+        }
+      },
+      include: {
+        questions: true,
+      },
+    });
+    const survey = result as unknown as Survey;
 
     ctx.response.status = 200;
     ctx.response.body = survey;
@@ -218,12 +182,6 @@ surveyRouter.delete("/:id", async (ctx) => {
   }
 
   try {
-    if (USE_MOCK_DATA) {
-      ctx.response.status = 501;
-      ctx.response.body = { error: "模拟数据模式不支持删除" };
-      return;
-    }
-
     // 删除问卷（级联删除问题、提交和答案）
     await prisma.survey.delete({
       where: { id }
@@ -252,51 +210,41 @@ surveyRouter.get("/:id/results", async (ctx) => {
   const limit = parseInt(url.searchParams.get("limit") || "20");
 
   try {
-    let response: SurveyResultResponse | null;
+    const skip = (page - 1) * limit;
     
-    if (USE_MOCK_DATA) {
-      response = await mockDataService.getSurveyResults(id, page, limit);
-    } else {
-      const skip = (page - 1) * limit;
-      
-      const [survey, submissions, total] = await Promise.all([
-        prisma.survey.findUnique({
-          where: { id },
-          include: { questions: true },
-        }),
-        prisma.submission.findMany({
-          where: { survey_id: id },
-          skip,
-          take: limit,
-          orderBy: { created_at: 'desc' },
-          include: {
-            user: true,
-            answers: true,
-          },
-        }),
-        prisma.submission.count({
-          where: { survey_id: id },
-        })
-      ]);
+    const [survey, submissions, total] = await Promise.all([
+      prisma.survey.findUnique({
+        where: { id },
+        include: { questions: true },
+      }),
+      prisma.submission.findMany({
+        where: { survey_id: id },
+        skip,
+        take: limit,
+        orderBy: { created_at: 'desc' },
+        include: {
+          user: true,
+          answers: true,
+        },
+      }),
+      prisma.submission.count({
+        where: { survey_id: id },
+      })
+    ]);
 
-      if (!survey) {
-        response = null;
-      } else {
-        response = {
-          survey: survey as unknown as Survey,
-          submissions: submissions as unknown as Submission[],
-          total,
-          page,
-          limit,
-        };
-      }
-    }
-
-    if (!response) {
+    if (!survey) {
       ctx.response.status = 404;
       ctx.response.body = { error: "问卷不存在" };
       return;
     }
+
+    const response: SurveyResultResponse = {
+      survey: survey as unknown as Survey,
+      submissions: submissions as unknown as Submission[],
+      total,
+      page,
+      limit,
+    };
 
     ctx.response.status = 200;
     ctx.response.body = response;

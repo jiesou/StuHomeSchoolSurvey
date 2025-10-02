@@ -81,17 +81,7 @@ const PORT = Deno.env.get("PORT") ? Number(Deno.env.get("PORT")) : 8000;
 // 启动服务器
 async function startServer() {
   console.log("正在启动服务器...");
-
-  // 检查是否使用模拟数据
-  const USE_MOCK_DATA = Deno.env.get("USE_MOCK_DATA") === "true";
-
-  if (!USE_MOCK_DATA) {
-    console.log("使用数据库连接");
-  } else {
-    console.log("使用模拟数据模式");
-  }
-
-  // 监听端口
+  console.log("使用数据库连接");
   console.log(`服务器运行在 http://0.0.0.0:${PORT}`);
   await app.listen({ port: PORT });
 }
