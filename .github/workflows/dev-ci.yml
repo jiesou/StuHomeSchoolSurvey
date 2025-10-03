@@ -32,17 +32,20 @@ jobs:
           cache: true
 
       - name: Prisma generate
+        working-directory: server
         run: |
           echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/surveysys" >> $GITHUB_ENV
-          cd server
           deno task db:generate
 
       # Uncomment this step to verify the use of 'deno fmt' on each commit.
       # - name: Verify formatting
-      #   run: deno fmt --check
+        # working-directory: server
+        # run: deno fmt --check
 
       # - name: Run linter
+        # working-directory: server
         # run: deno lint
 
       - name: Run tests
+        working-directory: server
         run: deno test -A
