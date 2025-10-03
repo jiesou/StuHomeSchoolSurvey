@@ -48,7 +48,7 @@
             <!-- 星级评分 -->
             <a-rate 
               v-if="question.config.type === 'star'"
-              v-model:value="formState.answers[question.id]"
+              v-model:value="formState.answers[question.id] as number"
               :count="question.config.maxStars || 5"
               allow-clear
             />

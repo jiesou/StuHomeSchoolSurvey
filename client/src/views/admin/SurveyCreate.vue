@@ -50,7 +50,7 @@
         
         <a-form-item label="问卷描述" name="description">
           <a-textarea 
-            v-model:value="formData.description" 
+            v-model:value="formData.description!" 
             :rows="3" 
             placeholder="问卷说明（可选）"
           />
@@ -74,7 +74,7 @@
             
             <a-form-item label="问题描述">
               <a-input 
-                v-model:value="question.description" 
+                v-model:value="question.description!" 
                 placeholder="请输入问题描述"
               />
             </a-form-item>

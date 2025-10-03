@@ -28,9 +28,9 @@
           {{ new Date(record.created_at).toLocaleString() }}
         </template>
         
-        <template v-if="column.key.toString().startsWith('question_')">
-          <span v-if="getAnswer(record, column.questionId)">
-            {{ formatAnswer(getAnswer(record, column.questionId)!, column.questionConfig) }}
+        <template v-if="column.key?.toString().startsWith('question_')">
+          <span v-if="getAnswer(record as Submission, (column as CustomColumn).questionId!)">
+            {{ formatAnswer(getAnswer(record as Submission, (column as CustomColumn).questionId!)!, (column as CustomColumn).questionConfig!) }}
           </span>
           <span v-else style="color: #ccc">未回答</span>
         </template>
@@ -47,6 +47,17 @@ import { QuestionType, parseAnswerValue } from '../../types'
 
 interface Props {
   id: string
+}
+
+interface CustomColumn {
+  title?: string;
+  dataIndex?: string | string[];
+  key?: string;
+  fixed?: 'left' | 'right';
+  resizable?: boolean;
+  width?: number;
+  questionId?: number;
+  questionConfig?: QuestionConfig;
 }
 
 const props = defineProps<Props>()
