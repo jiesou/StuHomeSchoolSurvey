@@ -31,16 +31,11 @@ jobs:
           deno-version: v2.x
           cache: true
 
-      - name: Install Deno dependencies
-        run: |
-          cd client
-          deno install
-          cd ../server
-          deno install
-
-      - name: Set DATABASE_URL
+      - name: Prisma generate
         run: |
           echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/surveysys" >> $GITHUB_ENV
+          cd server
+          deno task db:generate
 
       # Uncomment this step to verify the use of 'deno fmt' on each commit.
       # - name: Verify formatting
