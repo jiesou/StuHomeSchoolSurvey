@@ -1,4 +1,3 @@
-FROM node:22-alpine
 FROM denoland/deno:2.5.2
 
 WORKDIR /app
@@ -14,6 +13,7 @@ RUN cd client && deno install
 COPY client/ ./client/
 RUN cd client && deno task build
 RUN ln -s /app/client/dist /app/server/public
+COPY server/ ./server/
 
 EXPOSE 8000
 
