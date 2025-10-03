@@ -21,7 +21,7 @@
               </a-button>
               <a-dropdown>
                 <template #overlay>
-                  <a-menu @click="(e: any) => handleMenuClick(e, record)">
+                  <a-menu @click="(e: any) => handleMenuClick(e, record as Survey)">
                     <a-menu-item key="clone">
                       <CopyOutlined />
                       克隆
@@ -35,7 +35,7 @@
                       :title="`确定要删除问卷「${record.title}」吗？`"
                       ok-text="确定"
                       cancel-text="取消"
-                      @confirm="deleteSurvey(record)"
+                      @confirm="deleteSurvey(record as Survey)"
                     >
                       <a-menu-item key="delete" danger>
                         <DeleteOutlined />
