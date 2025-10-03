@@ -12,8 +12,10 @@ services:
 
   # Deno 后端+前端静态 serve
   server:
-    build:
-      context: .
+    image: ghcr.io/jiesou/StuHomeSchoolSurvey:latest
+    # For dev environment:
+    # build:
+      # context: .
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-surveysys}
       PORT: 8000
@@ -21,7 +23,7 @@ services:
       - "8000"
     depends_on:
       - db
-    # Only for development environment:
+    # For dev environment:
     # volumes:
     #   - ./server:/app/server
     #   - ./client:/app/client

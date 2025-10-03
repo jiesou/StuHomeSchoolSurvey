@@ -11,20 +11,19 @@ on:
     paths:
       - .github/workflows/copilot-setup-steps.yml
 
-services:
-  db:
-    image: postgres:18
-    env:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: surveysys
-    ports:
-      - 5432:5432
-
 jobs:
   # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
   copilot-setup-steps:
     runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: surveysys
+        ports:
+          - 5432:5432
 
     # Set the permissions to the lowest permissions possible needed for your steps.
     # Copilot will be given its own token for its operations.
@@ -49,7 +48,7 @@ jobs:
           cd client
           deno install
           cd ../server
-          deno install --allow-scripts=npm:core-js
+          deno install
 
       - name: Set DATABASE_URL
         run: |
