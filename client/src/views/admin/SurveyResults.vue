@@ -1,7 +1,7 @@
 <template>
   <div>
     <a-page-header 
-      :title="`问卷结果：${survey?.title}`"
+      :title="`问卷结果：${survey?.title || '...'}`"
       @back="$router.push('/admin')"
     />
     
@@ -21,16 +21,16 @@
       :loading="loading"
       @change="handleTableChange"
       rowKey="id"
-      :scroll="{ x: 800 }"
+      :scroll="{ x: 70+120+160+(survey?.questions?.length || 0)*150 }"
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'submitted_at'">
           {{ new Date(record.created_at).toLocaleString() }}
         </template>
         
-        <template v-if="column.key.toString().startsWith('question_')">
-          <span v-if="getAnswer(record, column.questionId)">
-            {{ formatAnswer(getAnswer(record, column.questionId)!, column.questionConfig) }}
+        <template v-if="column.key?.toString().startsWith('question_')">
+          <span v-if="getAnswer(record as Submission, (column as CustomColumn).questionId!)">
+            {{ formatAnswer(getAnswer(record as Submission, (column as CustomColumn).questionId!)!, (column as CustomColumn).questionConfig!) }}
           </span>
           <span v-else style="color: #ccc">未回答</span>
         </template>
@@ -47,6 +47,17 @@ import { QuestionType, parseAnswerValue } from '../../types'
 
 interface Props {
   id: string
+}
+
+interface CustomColumn {
+  title?: string;
+  dataIndex?: string | string[];
+  key?: string;
+  fixed?: 'left' | 'right';
+  resizable?: boolean;
+  width?: number;
+  questionId?: number;
+  questionConfig?: QuestionConfig;
 }
 
 const props = defineProps<Props>()
@@ -71,7 +82,8 @@ const columns = computed(() => {
       dataIndex: ['user', 'name'],
       key: 'name',
       fixed: 'left' as const,
-      width: 100
+      resizable: true,
+      width: 70
     },
     {
       title: '学号',
@@ -92,7 +104,6 @@ const columns = computed(() => {
     key: `question_${question.id}`,
     questionId: question.id,
     questionConfig: question.config,
-    width: 150
   }))
   
   return [...baseColumns, ...questionColumns]

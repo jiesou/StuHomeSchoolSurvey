@@ -1,9 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import AdminLayout from '../views/AdminLayout.vue'
-import SurveyList from '../views/admin/SurveyList.vue'
-import SurveyCreate from '../views/admin/SurveyCreate.vue'
-import SurveyResults from '../views/admin/SurveyResults.vue'
-import SurveyAnswer from '../views/SurveyAnswer.vue'
 
 const routes = [
   {
@@ -12,22 +7,27 @@ const routes = [
   },
   {
     path: '/admin',
-    component: AdminLayout,
+    component: () => import('../views/AdminLayout.vue'),
     children: [
       {
         path: '',
         name: 'SurveyList',
-        component: SurveyList
+        component: () => import('../views/admin/SurveyList.vue')
       },
       {
         path: 'create',
         name: 'SurveyCreate',
-        component: SurveyCreate
+        component: () => import('../views/admin/SurveyCreate.vue')
+      },
+      {
+        path: 'edit/:id',
+        name: 'SurveyEdit',
+        component: () => import('../views/admin/SurveyCreate.vue')
       },
       {
         path: 'surveys/:id/results',
         name: 'SurveyResults',
-        component: SurveyResults,
+        component: () => import('../views/admin/SurveyResults.vue'),
         props: true
       }
     ]
@@ -35,7 +35,7 @@ const routes = [
   {
     path: '/survey/:id',
     name: 'SurveyAnswer',
-    component: SurveyAnswer,
+    component: () => import('../views/SurveyAnswer.vue'),
     props: true
   }
 ]
