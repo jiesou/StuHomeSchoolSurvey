@@ -46,7 +46,6 @@
             v-else
             style="height: 400px; width: 100%"
             :words="(insights[question.id] as WordCloudInsight).words"
-            :color="([, weight]: [string, number]) => weight > 10 ? 'DeepPink' : weight > 5 ? 'RoyalBlue' : 'Indigo'"
             font-family="sans-serif"
           />
         </template>
@@ -89,7 +88,31 @@ async function loadInsight(questionId: number) {
   
   loadingInsights.value[questionId] = true
   try {
-    const insight = await apiService.getQuestionInsight(props.survey.id, questionId)
+    const insight = await apiService.getQuestionInsight(props.survey.id, questionId) as WordCloudInsight | StarDistributionInsight;
+
+    if (insight.type === 'wordcloud' && insight.words.length > 0) {
+      const words = insight.words;
+      const weights = words.map(w => w.weight);
+      const minWeight = Math.min(...weights);
+      const maxWeight = Math.max(...weights);
+
+      if (maxWeight === minWeight) {
+        words.forEach(word => word.color = 'RoyalBlue');
+      } else {
+        const range = maxWeight - minWeight;
+        words.forEach(word => {
+          const normalized = (word.weight - minWeight) / range;
+          if (normalized >= 0.7) {
+            word.color = 'DeepPink';
+          } else if (normalized >= 0.3) {
+            word.color = 'RoyalBlue';
+          } else {
+            word.color = 'Indigo';
+          }
+        });
+      }
+    }
+
     insights.value[questionId] = insight
   } catch (error) {
     console.error(`加载问题 ${questionId} 的统计失败:`, error)
