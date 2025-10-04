@@ -107,7 +107,7 @@ export interface SurveyResultResponse {
 }
 
 // 统计洞察相关类型
-export interface WordCloudInsight extends BaseInsight {
+export interface WordCloudInsight {
   type: 'wordcloud';
   words: { text: string; weight: number; color?: string; }[];
 }

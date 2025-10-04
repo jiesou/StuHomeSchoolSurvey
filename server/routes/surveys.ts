@@ -263,8 +263,9 @@ surveyRouter.get("/:id/insights/:questionId", async (ctx) => {
 
   if (!id || !questionId) {
     ctx.response.status = 400;
-    ctx.response.body = { error: "无效的参数" }
-  };
+    ctx.response.body = { error: "无效的参数" };
+    return;
+  }
 
   try {
     // 获取问题配置
