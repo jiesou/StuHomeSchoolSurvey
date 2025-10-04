@@ -1,6 +1,7 @@
 name: "Dev CI"
 
 on:
+  workflow_dispatch:
   push:
     branches: ["dev"]
   pull_request:
@@ -8,6 +9,7 @@ on:
 
 jobs:
   test:
+    name: Test
     runs-on: ubuntu-latest
     services:
       db:

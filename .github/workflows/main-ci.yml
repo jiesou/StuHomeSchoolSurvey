@@ -1,11 +1,13 @@
 name: "Main CI"
 
 on:
+  workflow_dispatch:
   push:
     branches: ["main"]
 
 jobs:
   test:
+    name: Test
     runs-on: ubuntu-latest
     services:
       db:
@@ -33,7 +35,6 @@ jobs:
         working-directory: server
         run: |
           echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/surveysys" >> $GITHUB_ENV
-          cd server
           deno task db:generate
 
       # Uncomment this step to verify the use of 'deno fmt' on each commit.
@@ -62,9 +63,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+          cache: true
+
       - name: Prisma generate
+        working-directory: server
         run: |
-          cd server
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/surveysys" >> $GITHUB_ENV
           deno task db:generate
 
       - name: Log in to the Container registry

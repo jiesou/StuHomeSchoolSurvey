@@ -12,7 +12,7 @@ services:
 
   # Deno 后端+前端静态 serve
   server:
-    image: ghcr.io/jiesou/StuHomeSchoolSurvey:latest
+    image: ghcr.io/jiesou/stuhomeschoolsurvey:main
     # For dev environment:
     # build:
       # context: .
