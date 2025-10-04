@@ -4,7 +4,8 @@ import type {
   CreateSurveyRequest, 
   SurveyListResponse, 
   SurveyResultResponse,
-  SubmitAnswersRequest 
+  SubmitAnswersRequest,
+  QuestionInsight 
 } from '../types'
 
 
@@ -70,6 +71,11 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify(data),
     })
+  }
+
+  // 获取问题的统计分析数据
+  async getQuestionInsight(surveyId: number, questionId: number): Promise<QuestionInsight> {
+    return this.request<QuestionInsight>(`surveys/${surveyId}/insights/${questionId}`)
   }
 }
 

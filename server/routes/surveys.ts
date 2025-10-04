@@ -1,7 +1,8 @@
 // 问卷相关的 API 路由
 import { Router } from "@oak/oak";
 import { prisma } from "../db.ts";
-import { CreateSurveyRequest, SurveyListResponse, SurveyResultResponse, Survey, Submission } from "../types.ts";
+import { CreateSurveyRequest, SurveyListResponse, SurveyResultResponse, Survey, Submission, QuestionInsight, Answer } from "../types.ts";
+import { generateQuestionInsight } from "../services/insights.ts";
 
 const surveyRouter = new Router();
 
@@ -252,6 +253,58 @@ surveyRouter.get("/:id/results", async (ctx) => {
     console.error("获取问卷结果失败:", error);
     ctx.response.status = 500;
     ctx.response.body = { error: "获取问卷结果失败" };
+  }
+});
+
+// 获取问题的统计分析数据
+surveyRouter.get("/:id/insights/:questionId", async (ctx) => {
+  const surveyId = parseInt(ctx.params.id);
+  const questionId = parseInt(ctx.params.questionId);
+  
+  if (!surveyId || !questionId) {
+    ctx.response.status = 400;
+    ctx.response.body = { error: "无效的ID" };
+    return;
+  }
+
+  try {
+    // 获取问题配置
+    const question = await prisma.question.findFirst({
+      where: { 
+        id: questionId,
+        survey_id: surveyId,
+      },
+    });
+
+    if (!question) {
+      ctx.response.status = 404;
+      ctx.response.body = { error: "问题不存在" };
+      return;
+    }
+
+    // 获取该问题的所有答案
+    const answers = await prisma.answer.findMany({
+      where: { 
+        question_id: questionId,
+        submission: {
+          survey_id: surveyId,
+        }
+      },
+    });
+
+    // 生成统计数据
+    const insight = generateQuestionInsight(
+      questionId,
+      question.config as any,
+      answers as unknown as Answer[]
+    );
+
+    ctx.response.status = 200;
+    ctx.response.body = insight;
+  } catch (error) {
+    console.error("获取问题统计数据失败:", error);
+    ctx.response.status = 500;
+    ctx.response.body = { error: "获取问题统计数据失败" };
   }
 });
 

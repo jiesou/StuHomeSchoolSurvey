@@ -106,6 +106,26 @@ export interface SurveyResultResponse {
   limit: number;
 }
 
+// Insights API 响应类型 - 根据问题类型返回不同结构
+export interface WordCloudInsight {
+  type: 'wordcloud';
+  questionId: number;
+  questionType: QuestionType.INPUT;
+  words: Array<[string, number]>; // [word, weight]
+  totalResponses: number;
+}
+
+export interface StarDistributionInsight {
+  type: 'star_distribution';
+  questionId: number;
+  questionType: QuestionType.STAR;
+  distribution: { [star: number]: number }; // star -> count
+  totalResponses: number;
+  average: number;
+}
+
+export type QuestionInsight = WordCloudInsight | StarDistributionInsight;
+
 // 工具函数类型
 export type AnswerValue<T extends QuestionType> = 
   T extends QuestionType.STAR ? number :
