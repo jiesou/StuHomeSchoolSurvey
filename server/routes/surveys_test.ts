@@ -305,3 +305,96 @@ Deno.test("GET /:id/results - 应该返回问卷和提交列表", async () => {
   assertEquals(body.total, 1);
   assertEquals(body.submissions[0].user.name, "张三");
 });
+
+// 测试获取问题统计 - 星级类型
+Deno.test("GET /:id/insights/:questionId - 应该返回星级问题的统计", async () => {
+  const mockQuestion = {
+    id: 1,
+    survey_id: 1,
+    description: "满意度评分",
+    config: { type: QuestionType.STAR, maxStars: 5 }
+  };
+
+  const mockAnswers = [
+    { value: "5" },
+    { value: "4" },
+    { value: "5" },
+    { value: "3" },
+    { value: "5" }
+  ];
+
+  using findUniqueStub = stub(
+    prisma.question,
+    "findUnique",
+    () => Promise.resolve(mockQuestion) as any
+  );
+
+  using findManyStub = stub(
+    prisma.answer,
+    "findMany",
+    () => Promise.resolve(mockAnswers) as any
+  );
+
+  const ctx = testing.createMockContext({
+    path: "/1/insights/1",
+    method: "GET",
+  });
+  ctx.params = { id: "1", questionId: "1" };
+
+  const middleware = surveyRouter.routes();
+  const next = testing.createMockNext();
+  await middleware(ctx, next);
+
+  assertEquals(ctx.response.status, 200);
+  const body = ctx.response.body as any;
+  assertEquals(body.type, "star");
+  assertExists(body.distribution);
+  assertEquals(body.total, 5);
+  assertEquals(body.distribution[5], 3);
+  assertEquals(body.distribution[4], 1);
+  assertEquals(body.distribution[3], 1);
+});
+
+// 测试获取问题统计 - 文本类型（词云）
+Deno.test("GET /:id/insights/:questionId - 应该返回文本问题的词云", async () => {
+  const mockQuestion = {
+    id: 2,
+    survey_id: 1,
+    description: "意见建议",
+    config: { type: QuestionType.INPUT }
+  };
+
+  const mockAnswers = [
+    { value: "老师很好，课程内容丰富" },
+    { value: "课程内容很有趣" },
+    { value: "希望增加实践课程" }
+  ];
+
+  using findUniqueStub = stub(
+    prisma.question,
+    "findUnique",
+    () => Promise.resolve(mockQuestion) as any
+  );
+
+  using findManyStub = stub(
+    prisma.answer,
+    "findMany",
+    () => Promise.resolve(mockAnswers) as any
+  );
+
+  const ctx = testing.createMockContext({
+    path: "/1/insights/2",
+    method: "GET",
+  });
+  ctx.params = { id: "1", questionId: "2" };
+
+  const middleware = surveyRouter.routes();
+  const next = testing.createMockNext();
+  await middleware(ctx, next);
+
+  assertEquals(ctx.response.status, 200);
+  const body = ctx.response.body as any;
+  assertEquals(body.type, "wordcloud");
+  assertExists(body.words);
+  assertEquals(Array.isArray(body.words), true);
+});

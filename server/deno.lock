@@ -6,6 +6,7 @@
     "jsr:@std/assert@1": "1.0.14",
     "jsr:@std/assert@^1.0.13": "1.0.14",
     "jsr:@std/assert@^1.0.14": "1.0.14",
+    "jsr:@std/async@^1.0.13": "1.0.14",
     "jsr:@std/bytes@1": "1.0.6",
     "jsr:@std/crypto@1": "1.0.5",
     "jsr:@std/data-structures@^1.0.9": "1.0.9",
@@ -23,6 +24,8 @@
     "npm:@prisma/client@^6.16.3": "6.16.3_prisma@6.16.3",
     "npm:@prisma/extension-accelerate@^2.0.2": "2.0.2_@prisma+client@6.16.3__prisma@6.16.3_prisma@6.16.3",
     "npm:@types/node@*": "24.2.0",
+    "npm:jieba-wasm@*": "2.4.0",
+    "npm:jieba-wasm@^2.4.0": "2.4.0",
     "npm:path-to-regexp@^6.3.0": "6.3.0",
     "npm:prisma@*": "6.16.3",
     "npm:prisma@^6.16.3": "6.16.3"
@@ -56,6 +59,9 @@
       "dependencies": [
         "jsr:@std/internal"
       ]
+    },
+    "@std/async@1.0.14": {
+      "integrity": "62e954a418652c704d37563a3e54a37d4cf0268a9dcaeac1660cc652880b5326"
     },
     "@std/bytes@1.0.6": {
       "integrity": "f6ac6adbd8ccd99314045f5703e23af0a68d7f7e58364b47d2c7f408aeb5820a"
@@ -97,6 +103,7 @@
       "integrity": "a490169f5ccb0f3ae9c94fbc69d2cd43603f2cffb41713a85f99bbb0e3087cbc",
       "dependencies": [
         "jsr:@std/assert@^1.0.13",
+        "jsr:@std/async",
         "jsr:@std/data-structures",
         "jsr:@std/fs",
         "jsr:@std/internal",
@@ -261,6 +268,9 @@
       ],
       "bin": true
     },
+    "jieba-wasm@2.4.0": {
+      "integrity": "sha512-ZvQdS+FGifrFXZIXSgOyOgEz+1wdy1P4vSvwe37FVtku9ycSdHTZbHqF5i9tMN1JucoAmeiLBeI6/YaqcGD+KA=="
+    },
     "jiti@2.6.0": {
       "integrity": "sha512-VXe6RjJkBPj0ohtqaO8vSWP3ZhAKo66fKrFNCll4BTcwljPLz03pCbaNKfzGP5MbrCYcbJ7v0nOYYwUzTEIdXQ==",
       "bin": true
@@ -410,6 +420,7 @@
         "npm:@prisma/adapter-pg@^6.16.3",
         "npm:@prisma/client@^6.16.3",
         "npm:@prisma/extension-accelerate@^2.0.2",
+        "npm:jieba-wasm@^2.4.0",
         "npm:prisma@^6.16.3"
       ]
     }

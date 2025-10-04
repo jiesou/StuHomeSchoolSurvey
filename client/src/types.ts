@@ -106,6 +106,21 @@ export interface SurveyResultResponse {
   limit: number;
 }
 
+// 统计洞察相关类型
+export interface WordCloudInsight {
+  type: 'wordcloud';
+  words: { text: string; weight: number; color?: string; }[];
+}
+
+export interface StarDistributionInsight {
+  type: 'star';
+  distribution: Record<number, number>; // { star: count }
+  average: number;
+  total: number;
+}
+
+export type QuestionInsight = WordCloudInsight | StarDistributionInsight;
+
 // 工具函数类型
 export type AnswerValue<T extends QuestionType> = 
   T extends QuestionType.STAR ? number :
