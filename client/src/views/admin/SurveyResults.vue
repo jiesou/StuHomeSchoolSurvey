@@ -1,7 +1,7 @@
 <template>
   <div>
     <a-page-header 
-      :title="`问卷结果：${survey?.title || '...'}`"
+      :title="`${survey?.title || '...'}`"
       @back="$router.push('/admin')"
     />
     

@@ -73,4 +73,13 @@
   padding: 24px;
   border-radius: 4px;
 }
+
+@media (max-width: 767px) {
+  .header-content h1 {
+    font-size: 1.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
 </style>
