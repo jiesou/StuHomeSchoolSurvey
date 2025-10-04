@@ -6,6 +6,17 @@ import { cut } from "npm:jieba-wasm";
 
 const surveyRouter = new Router();
 
+// 验证 ID 参数的辅助函数
+function validateId(ctx: any, paramName: string = 'id'): number | null {
+  const id = parseInt(ctx.params[paramName]);
+  if (!id || isNaN(id)) {
+    ctx.response.status = 400;
+    ctx.response.body = { error: `无效的${paramName === 'id' ? '问卷' : '问题'}ID` };
+    return null;
+  }
+  return id;
+}
+
 // 获取问卷列表（分页）
 surveyRouter.get("/", async (ctx) => {
   const url = new URL(ctx.request.url);
@@ -258,12 +269,10 @@ surveyRouter.get("/:id/results", async (ctx) => {
 
 // 获取问卷某个问题的统计洞察
 surveyRouter.get("/:id/insights/:questionId", async (ctx) => {
-  const id = parseInt(ctx.params.id);
-  const questionId = parseInt(ctx.params.questionId);
+  const id = validateId(ctx);
+  const questionId = validateId(ctx, 'questionId');
   
   if (!id || !questionId) {
-    ctx.response.status = 400;
-    ctx.response.body = { error: "无效的参数" };
     return;
   }
 
@@ -296,7 +305,7 @@ surveyRouter.get("/:id/insights/:questionId", async (ctx) => {
 
     if (config.type === QuestionType.INPUT) {
       // 文本类型：生成词云数据
-      const allText = answers.map(a => a.value).join(' ');
+      const allText = answers.map((a: any) => a.value).join(' ');
       
       // 使用 jieba 分词
       const words = cut(allText, true) as string[];

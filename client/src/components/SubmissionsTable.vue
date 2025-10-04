@@ -24,7 +24,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { apiService } from '../api'
 import type { Survey, Submission, Answer, QuestionConfig } from '../types'
 import { QuestionType, parseAnswerValue } from '../types'
 
@@ -41,15 +42,24 @@ interface CustomColumn {
 
 interface Props {
   survey: Survey | null
-  submissions: Submission[]
-  pagination: any
-  loading: boolean
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<{
-  change: [pagination: any]
+  totalChange: [total: number]
 }>()
+
+const loading = ref(false)
+const submissions = ref<Submission[]>([])
+const pagination = ref({
+  current: 1,
+  pageSize: 20,
+  pageSizeOptions: ['10', '20', '50'],
+  total: 0,
+  showSizeChanger: true,
+  showQuickJumper: true,
+  showTotal: (total: number) => `共 ${total} 条`
+})
 
 const columns = computed(() => {
   const baseColumns = [
@@ -85,9 +95,39 @@ const columns = computed(() => {
   return [...baseColumns, ...questionColumns]
 })
 
-function handleTableChange(pag: any) {
-  emit('change', pag)
+async function loadData() {
+  if (!props.survey) return
+  
+  loading.value = true
+  try {
+    const resultsData = await apiService.getSurveyResults(
+      props.survey.id, 
+      pagination.value.current, 
+      pagination.value.pageSize
+    )
+    
+    submissions.value = resultsData.submissions
+    pagination.value.total = resultsData.total
+    emit('totalChange', resultsData.total)
+  } catch (error) {
+    console.error('加载数据失败：', error)
+  } finally {
+    loading.value = false
+  }
 }
+
+function handleTableChange(pag: any) {
+  pagination.value.current = pag.current
+  pagination.value.pageSize = pag.pageSize
+  loadData()
+}
+
+// 当 survey 变化时加载数据
+watch(() => props.survey, (newSurvey) => {
+  if (newSurvey) {
+    loadData()
+  }
+}, { immediate: true })
 
 function getAnswer(submission: Submission, questionId: number): Answer | undefined {
   return submission.answers?.find(answer => answer.question_id === questionId)
@@ -98,7 +138,7 @@ function formatAnswer(answer: Answer, config: QuestionConfig): string {
   
   if (config.type === QuestionType.STAR) {
     const stars = '★'.repeat(value as number) + '☆'.repeat((config.maxStars || 5) - (value as number))
-    return `${stars} (${value})`
+    return `${stars}`
   }
   
   return String(value)

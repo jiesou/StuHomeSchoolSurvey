@@ -10,7 +10,8 @@
     "npm:vite@^7.1.7": "7.1.7_picomatch@4.0.3",
     "npm:vue-router@^4.5.1": "4.5.1_vue@3.5.22__typescript@5.8.3_typescript@5.8.3",
     "npm:vue-tsc@^3.0.7": "3.0.8_typescript@5.8.3",
-    "npm:vue@^3.5.21": "3.5.22_typescript@5.8.3"
+    "npm:vue@^3.5.21": "3.5.22_typescript@5.8.3",
+    "npm:vuewordcloud@19": "19.0.0_vue@3.5.22__typescript@5.8.3_typescript@5.8.3"
   },
   "npm": {
     "@ant-design/colors@6.0.0": {
@@ -936,6 +937,12 @@
         "typescript"
       ]
     },
+    "vuewordcloud@19.0.0_vue@3.5.22__typescript@5.8.3_typescript@5.8.3": {
+      "integrity": "sha512-DgvvtatvU+lp1Crb7s+KbjvO/ULJLc43jce/mUY31bHireqeIHKaZ9PeXRfAy0rMcZi8EURnGK0ZPWoJBDRUhw==",
+      "dependencies": [
+        "vue"
+      ]
+    },
     "warning@4.0.3": {
       "integrity": "sha512-rpJyN222KWIvHJ/F53XSZv0Zl/accqHR8et1kpaMTD/fLCRxtV8iX8czMzY7sVZupTI3zcUTg8eycS2kNF9l6w==",
       "dependencies": [
@@ -958,7 +965,8 @@
         "npm:vite@^7.1.7",
         "npm:vue-router@^4.5.1",
         "npm:vue-tsc@^3.0.7",
-        "npm:vue@^3.5.21"
+        "npm:vue@^3.5.21",
+        "npm:vuewordcloud@19"
       ]
     }
   }
