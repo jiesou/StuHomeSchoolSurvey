@@ -1,7 +1,8 @@
 // 问卷相关的 API 路由
 import { Router } from "@oak/oak";
 import { prisma } from "../db.ts";
-import { CreateSurveyRequest, SurveyListResponse, SurveyResultResponse, Survey, Submission } from "../types.ts";
+import { CreateSurveyRequest, SurveyListResponse, SurveyResultResponse, Survey, Submission, QuestionInsight, QuestionType } from "../types.ts";
+import { cut } from "npm:jieba-wasm";
 
 const surveyRouter = new Router();
 
@@ -252,6 +253,110 @@ surveyRouter.get("/:id/results", async (ctx) => {
     console.error("获取问卷结果失败:", error);
     ctx.response.status = 500;
     ctx.response.body = { error: "获取问卷结果失败" };
+  }
+});
+
+// 获取问卷某个问题的统计洞察
+surveyRouter.get("/:id/insights/:questionId", async (ctx) => {
+  const id = parseInt(ctx.params.id);
+  const questionId = parseInt(ctx.params.questionId);
+  
+  if (!id || !questionId) {
+    ctx.response.status = 400;
+    ctx.response.body = { error: "无效的参数" };
+    return;
+  }
+
+  try {
+    // 获取问题配置
+    const question = await prisma.question.findUnique({
+      where: { id: questionId },
+    });
+
+    if (!question || question.survey_id !== id) {
+      ctx.response.status = 404;
+      ctx.response.body = { error: "问题不存在" };
+      return;
+    }
+
+    const config = question.config as any;
+
+    // 获取该问题的所有答案
+    const answers = await prisma.answer.findMany({
+      where: { 
+        question_id: questionId,
+        submission: {
+          survey_id: id
+        }
+      },
+      select: { value: true }
+    });
+
+    let insight: QuestionInsight;
+
+    if (config.type === QuestionType.INPUT) {
+      // 文本类型：生成词云数据
+      const allText = answers.map(a => a.value).join(' ');
+      
+      // 使用 jieba 分词
+      const words = cut(allText, true) as string[];
+      
+      // 统计词频
+      const wordCount = new Map<string, number>();
+      for (const word of words) {
+        // 过滤单字和空白
+        if (word.trim().length > 1) {
+          wordCount.set(word, (wordCount.get(word) || 0) + 1);
+        }
+      }
+      
+      // 转换为数组并按频率排序，取前50个
+      const sortedWords = Array.from(wordCount.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 50) as [string, number][];
+      
+      insight = {
+        type: 'wordcloud',
+        words: sortedWords
+      };
+    } else if (config.type === QuestionType.STAR) {
+      // 星级类型：计算分布
+      const distribution: Record<number, number> = {};
+      const maxStars = config.maxStars || 5;
+      
+      // 初始化分布
+      for (let i = 0; i <= maxStars; i++) {
+        distribution[i] = 0;
+      }
+      
+      // 统计分布
+      let sum = 0;
+      for (const answer of answers) {
+        const star = parseInt(answer.value);
+        if (!isNaN(star) && star >= 0 && star <= maxStars) {
+          distribution[star]++;
+          sum += star;
+        }
+      }
+      
+      insight = {
+        type: 'star',
+        distribution,
+        average: answers.length > 0 ? sum / answers.length : 0,
+        total: answers.length
+      };
+    } else {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "不支持的问题类型" };
+      return;
+    }
+
+    ctx.response.status = 200;
+    ctx.response.body = insight;
+  } catch (error) {
+    console.error("获取问题统计失败:", error);
+    ctx.response.status = 500;
+    ctx.response.body = { error: "获取问题统计失败" };
   }
 });
 
