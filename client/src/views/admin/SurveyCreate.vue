@@ -102,6 +102,16 @@
               />
             </a-form-item>
             
+            <a-form-item v-if="question.config.type === 'input'" label="最大字符数">
+              <a-input-number 
+                v-model:value="question.config.maxLength" 
+                :min="1" 
+                :max="10000" 
+                placeholder="不限制可留空"
+                style="width: 100%"
+              />
+            </a-form-item>
+            
             <a-form-item label="是否必填">
               <a-checkbox v-model:checked="question.config.required" />
             </a-form-item>

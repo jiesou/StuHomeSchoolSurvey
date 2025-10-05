@@ -59,6 +59,8 @@
               v-model:value="formState.answers[question.id]"
               :placeholder="question.config.placeholder || '请输入您的回答'"
               :rows="3"
+              :maxlength="question.config.maxLength"
+              :show-count="!!question.config.maxLength"
             />
           </a-form-item>
         </div>
@@ -168,14 +170,29 @@ async function handleSubmit() {
     
     await apiService.submitAnswers(submitData)
     showSuccessModal.value = true
-  } catch (error) {
-    const errorMessage = (error as Error).message
-    if (errorMessage.includes('已经提交过')) {
-      message.warning('您已经提交过这份问卷，不能重复提交')
+  } catch (error: any) {
+    // 如果是表单验证错误，滚动到第一个错误处
+    if (error.errorFields && error.errorFields.length > 0) {
+      message.error('请完成必填项后再提交')
+      // 滚动到第一个错误字段
+      const firstErrorField = error.errorFields[0]
+      const fieldName = firstErrorField.name[0]
+      setTimeout(() => {
+        const errorElement = document.querySelector(`[name="${fieldName}"]`) || 
+                            document.querySelector('.ant-form-item-has-error')
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 100)
     } else {
-      message.error('提交失败：' + errorMessage)
+      const errorMessage = error.message || String(error)
+      if (errorMessage.includes('已经提交过')) {
+        message.warning('您已经提交过这份问卷，不能重复提交')
+      } else {
+        message.error('提交失败：' + errorMessage)
+      }
+      console.error('提交失败：', error)
     }
-    console.error('提交失败：', error)
   } finally {
     submitting.value = false
   }

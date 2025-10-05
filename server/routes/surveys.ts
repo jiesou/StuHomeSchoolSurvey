@@ -90,6 +90,30 @@ surveyRouter.post("/", async (ctx) => {
       return;
     }
 
+    // 验证字段长度
+    if (body.title.length > 200) {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "问卷标题不能超过200个字符" };
+      return;
+    }
+    if (body.description && body.description.length > 1000) {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "问卷描述不能超过1000个字符" };
+      return;
+    }
+    if (body.year.length > 20) {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "学年格式不正确" };
+      return;
+    }
+    for (const question of body.questions) {
+      if (question.description && question.description.length > 500) {
+        ctx.response.status = 400;
+        ctx.response.body = { error: "问题描述不能超过500个字符" };
+        return;
+      }
+    }
+
     const result = await prisma.survey.create({
       data: {
         title: body.title,
@@ -134,6 +158,41 @@ surveyRouter.put("/:id", async (ctx) => {
     if (!body.title || !body.year || !body.semester || !body.week) {
       ctx.response.status = 400;
       ctx.response.body = { error: "缺少必要字段" };
+      return;
+    }
+
+    // 验证字段长度
+    if (body.title.length > 200) {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "问卷标题不能超过200个字符" };
+      return;
+    }
+    if (body.description && body.description.length > 1000) {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "问卷描述不能超过1000个字符" };
+      return;
+    }
+    if (body.year.length > 20) {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "学年格式不正确" };
+      return;
+    }
+    for (const question of body.questions) {
+      if (question.description && question.description.length > 500) {
+        ctx.response.status = 400;
+        ctx.response.body = { error: "问题描述不能超过500个字符" };
+        return;
+      }
+    }
+
+    // 检查问卷是否已有提交记录
+    const submissionCount = await prisma.submission.count({
+      where: { survey_id: id }
+    });
+
+    if (submissionCount > 0) {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "该问卷已有提交记录，不能修改问题。建议创建新问卷。" };
       return;
     }
 
