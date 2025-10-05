@@ -8,7 +8,7 @@
     <a-card v-else-if="survey" :title="survey.title">
       <template #extra>
         <a-tag color="blue">{{ survey.year }}</a-tag>
-        <a-tag color="green">{{ survey.semester === 1 ? '上学期' : '下学期' }}</a-tag>
+        <a-tag color="green">{{ survey.semester === 1 ? '第一学期' : '第二学期' }}</a-tag>
         <a-tag>第{{ survey.week }}周</a-tag>
       </template>
       
@@ -20,6 +20,7 @@
         :model="formState"
         layout="vertical"
         @finish="handleSubmit"
+        @finishFailed="handleValidateFail"
         ref="formRef"
       >
         <!-- 用户信息 -->
@@ -143,54 +144,45 @@ async function loadSurvey() {
   }
 }
 
-async function handleSubmit() {
-  formRef.value.validate()
-    .then(async () => {
-      if (!survey.value) return
+function handleValidateFail({ values, errorFields, outOfDate }) {
+  message.error('有必填项未填写')
+  formRef.value?.scrollToField(errorFields[0].name, { behavior: 'smooth', block: 'center' })
+}
+
+async function handleSubmit(values: typeof formState) {
+    submitting.value = true
+    
+    try {
+      // 构建答案数组，只包含已回答的问题
+      const answers: { question_id: number; value: string }[] = Object.entries(formState.answers)
+        .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+        .map(([id, value]) => ({
+          question_id: parseInt(id),
+          value: String(value)
+        }))
       
-      submitting.value = true
+      const submitData: SubmitAnswersRequest = {
+        survey_id: parseInt(props.id),
+        user: {
+          name: formState.name,
+          id_number: formState.id_number
+        },
+        answers
+      }
       
-      try {
-        // 构建答案数组，只包含已回答的问题
-        const answers: { question_id: number; value: string }[] = Object.entries(formState.answers)
-          .filter(([_, value]) => value !== undefined && value !== null && value !== '')
-          .map(([id, value]) => ({
-            question_id: parseInt(id),
-            value: String(value)
-          }))
-        
-        const submitData: SubmitAnswersRequest = {
-          survey_id: parseInt(props.id),
-          user: {
-            name: formState.name,
-            id_number: formState.id_number
-          },
-          answers
-        }
-        
-        await apiService.submitAnswers(submitData)
-        showSuccessModal.value = true
-      } catch (error: any) {
-        const errorMessage = error.message || String(error)
-        if (errorMessage.includes('已经提交过')) {
-          message.warning('您已经提交过这份问卷，不能重复提交')
-        } else {
-          message.error('提交失败：' + errorMessage)
-        }
-        console.error('提交失败：', error)
-      } finally {
-        submitting.value = false
+      await apiService.submitAnswers(submitData)
+      showSuccessModal.value = true
+    } catch (error: any) {
+      const errorMessage = error.message || String(error)
+      if (errorMessage.includes('已经提交过')) {
+        message.warning('您已经提交过这份问卷，不能重复提交')
+      } else {
+        message.error('提交失败：' + errorMessage)
       }
-    })
-    .catch((err: any) => {
-      message.error('请完成必填项后再提交')
-      // 滚动到第一个错误字段
-      const errorElement = document.querySelector('.ant-form-item-has-error')
-      if (errorElement) {
-        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }
-      console.error('验证失败：', err)
-    })
+      console.error('提交失败：', error)
+    } finally {
+      submitting.value = false
+    }
 }
 
 onMounted(() => {

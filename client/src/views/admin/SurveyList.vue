@@ -93,11 +93,13 @@ const columns = [
     title: '学期',
     dataIndex: 'semester',
     key: 'semester',
+    width: 70,
   },
   {
     title: '周次',
     dataIndex: 'week',
     key: 'week',
+    width: 70,
   },
   {
     title: '创建时间',

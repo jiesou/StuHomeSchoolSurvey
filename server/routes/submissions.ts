@@ -5,18 +5,15 @@ import { SubmitAnswersRequest, UserRole } from "../types.ts";
 
 const submissionRouter = new Router();
 
-// 验证提交数据的中间件
-async function validateSubmissionInput(ctx: Context, next: Next) {
+// 查找或创建用户的中间件
+async function ensureUserExists(ctx: Context, next: Next) {
   const body = await ctx.request.body.json() as SubmitAnswersRequest;
-  ctx.state.body = body;
   
   if (!body.survey_id || !body.user?.name || !body.user?.id_number || !body.answers?.length) {
     ctx.response.status = 400;
     ctx.response.body = { error: "缺少必要字段" };
     return;
   }
-
-  // 验证用户输入长度
   if (body.user.name.length > 100) {
     ctx.response.status = 400;
     ctx.response.body = { error: "姓名长度不能超过100个字符" };
@@ -28,13 +25,6 @@ async function validateSubmissionInput(ctx: Context, next: Next) {
     return;
   }
 
-  await next();
-}
-
-// 查找或创建用户的中间件
-async function ensureUserExists(ctx: Context, next: Next) {
-  const body = ctx.state.body as SubmitAnswersRequest;
-  
   // 查找用户
   let user = await prisma.user.findUnique({
     where: {
@@ -56,7 +46,7 @@ async function ensureUserExists(ctx: Context, next: Next) {
       // 处理学号重复的情况（可能是并发创建）
       if (createError.code === 'P2002') {
         ctx.response.status = 400;
-        ctx.response.body = { error: "该学号已被其他用户使用，请核实学号和姓名" };
+        ctx.response.body = { error: "学号被占用，请重试" };
         return;
       }
       throw createError;
@@ -64,7 +54,7 @@ async function ensureUserExists(ctx: Context, next: Next) {
   } else if (user.name !== body.user.name) {
     // 学号存在但姓名不匹配
     ctx.response.status = 400;
-    ctx.response.body = { error: "学号和姓名不匹配，请核实您的学号和姓名" };
+    ctx.response.body = { error: "学号和姓名不匹配" };
     return;
   }
 
@@ -73,9 +63,9 @@ async function ensureUserExists(ctx: Context, next: Next) {
 }
 
 // 提交问卷答案
-submissionRouter.post("/", validateSubmissionInput, ensureUserExists, async (ctx) => {
+submissionRouter.post("/", ensureUserExists, async (ctx) => {
   try {
-    const body = ctx.state.body as SubmitAnswersRequest;
+    const body = await ctx.request.body.json() as SubmitAnswersRequest;
     const user = ctx.state.user;
 
     // 检查问卷是否存在

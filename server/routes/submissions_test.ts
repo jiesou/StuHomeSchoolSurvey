@@ -434,7 +434,7 @@ Deno.test("POST / - 姓名和学号不匹配时应该返回400", async () => {
 
   assertEquals(ctx.response.status, 400);
   const body = ctx.response.body as any;
-  assertEquals(body.error, "学号和姓名不匹配，请核实您的学号和姓名");
+  assertEquals(body.error, "学号和姓名不匹配");
 });
 
 // 测试提交答案 - 答案超出长度限制

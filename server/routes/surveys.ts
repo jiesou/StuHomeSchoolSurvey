@@ -41,7 +41,7 @@ async function validateSurveyInput(ctx: Context, next: Next) {
       return;
     }
     
-    // 类型检查和设置默认值
+    // 类型检查和设置默认上限
     const config = question.config as QuestionConfig;
     if (config.type === "input" && !config.maxLength) {
       config.maxLength = 10000;
