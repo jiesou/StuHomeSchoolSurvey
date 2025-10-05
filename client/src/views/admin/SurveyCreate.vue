@@ -6,6 +6,14 @@
     />
     
     <a-spin :spinning="loading" tip="加载中...">
+      <a-alert 
+        v-if="isEditMode"
+        message="警告：如果这个问卷已被人提交过，编辑问卷会导致现有的提交记录永久丢失！" 
+        type="warning" 
+        show-icon
+        style="margin-bottom: 16px"
+      />
+      
       <a-form
         :model="formData"
         :rules="rules"
@@ -99,6 +107,16 @@
               <a-input 
                 v-model:value="question.config.placeholder" 
                 placeholder="请输入提示文字"
+              />
+            </a-form-item>
+            
+            <a-form-item v-if="question.config.type === 'input'" label="最大字符数">
+              <a-input-number 
+                v-model:value="question.config.maxLength" 
+                :min="1" 
+                :max="10000" 
+                placeholder="不限制可留空"
+                style="width: 100%"
               />
             </a-form-item>
             

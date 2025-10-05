@@ -19,6 +19,7 @@ export interface QuestionConfig {
   maxStars?: number;     // 星级评分最大星数，默认5
   placeholder?: string;  // 文本输入提示
   required?: boolean;    // 是否必填
+  maxLength?: number;    // input 类型最大字符数
 }
 
 // 基础数据类型
