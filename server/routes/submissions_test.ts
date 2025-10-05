@@ -300,6 +300,19 @@ Deno.test("POST / - 应该检测到重复提交", async () => {
 
 // 测试提交答案 - 问卷不存在
 Deno.test("POST / - 问卷不存在时应该返回404", async () => {
+  const mockUser = {
+    id: 1,
+    name: "张三",
+    id_number: "2023001",
+    role: UserRole.STUDENT
+  };
+
+  using findUniqueUserStub = stub(
+    prisma.user,
+    "findUnique",
+    () => Promise.resolve(mockUser) as any
+  );
+
   using findUniqueSurveyStub = stub(
     prisma.survey,
     "findUnique",

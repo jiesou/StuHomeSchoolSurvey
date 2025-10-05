@@ -1,11 +1,55 @@
 // 问卷相关的 API 路由
-import { Router } from "@oak/oak";
+import { Router, Context, Next } from "@oak/oak";
 import { prisma } from "../db.ts";
-import { CreateSurveyRequest, SurveyListResponse, SurveyResultResponse, Survey, Submission, QuestionInsight, QuestionType } from "../types.ts";
+import { CreateSurveyRequest, SurveyListResponse, SurveyResultResponse, Survey, Submission, QuestionInsight, QuestionType, QuestionConfig } from "../types.ts";
 import { cut } from "npm:jieba-wasm";
-import { validateSurveyInput } from "../middleware/validation.ts";
 
 const surveyRouter = new Router();
+
+// 验证问卷输入的中间件
+async function validateSurveyInput(ctx: Context, next: Next) {
+  const body = await ctx.request.body.json() as CreateSurveyRequest;
+  ctx.state.body = body;
+  
+  if (!body.title || !body.year || !body.semester || !body.week) {
+    ctx.response.status = 400;
+    ctx.response.body = { error: "缺少必要字段" };
+    return;
+  }
+
+  // 验证字段长度
+  if (body.title.length > 200) {
+    ctx.response.status = 400;
+    ctx.response.body = { error: "问卷标题不能超过200个字符" };
+    return;
+  }
+  if (body.description && body.description.length > 1000) {
+    ctx.response.status = 400;
+    ctx.response.body = { error: "问卷描述不能超过1000个字符" };
+    return;
+  }
+  if (body.year.length > 20) {
+    ctx.response.status = 400;
+    ctx.response.body = { error: "学年格式不正确" };
+    return;
+  }
+  
+  for (const question of body.questions) {
+    if (question.description && question.description.length > 500) {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "问题描述不能超过500个字符" };
+      return;
+    }
+    
+    // 类型检查和设置默认值
+    const config = question.config as QuestionConfig;
+    if (config.type === "input" && !config.maxLength) {
+      config.maxLength = 10000;
+    }
+  }
+
+  await next();
+}
 
 // 获取问卷列表（分页）
 surveyRouter.get("/", async (ctx) => {
@@ -81,23 +125,9 @@ surveyRouter.get("/:id", async (ctx) => {
 });
 
 // 创建新问卷
-surveyRouter.post("/", async (ctx) => {
+surveyRouter.post("/", validateSurveyInput, async (ctx) => {
   try {
-    const body = await ctx.request.body.json() as CreateSurveyRequest;
-    
-    if (!body.title || !body.year || !body.semester || !body.week) {
-      ctx.response.status = 400;
-      ctx.response.body = { error: "缺少必要字段" };
-      return;
-    }
-
-    // 验证问卷输入
-    const validationError = validateSurveyInput(body);
-    if (validationError) {
-      ctx.response.status = 400;
-      ctx.response.body = { error: validationError };
-      return;
-    }
+    const body = ctx.state.body as CreateSurveyRequest;
 
     const result = await prisma.survey.create({
       data: {
@@ -129,7 +159,7 @@ surveyRouter.post("/", async (ctx) => {
 });
 
 // 更新问卷
-surveyRouter.put("/:id", async (ctx) => {
+surveyRouter.put("/:id", validateSurveyInput, async (ctx) => {
   const id = parseInt(ctx.params.id);
   if (!id) {
     ctx.response.status = 400;
@@ -138,21 +168,7 @@ surveyRouter.put("/:id", async (ctx) => {
   }
 
   try {
-    const body = await ctx.request.body.json() as CreateSurveyRequest;
-    
-    if (!body.title || !body.year || !body.semester || !body.week) {
-      ctx.response.status = 400;
-      ctx.response.body = { error: "缺少必要字段" };
-      return;
-    }
-
-    // 验证问卷输入
-    const validationError = validateSurveyInput(body);
-    if (validationError) {
-      ctx.response.status = 400;
-      ctx.response.body = { error: validationError };
-      return;
-    }
+    const body = ctx.state.body as CreateSurveyRequest;
 
     // 删除旧问题
     await prisma.question.deleteMany({
