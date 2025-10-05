@@ -6,6 +6,14 @@
     />
     
     <a-spin :spinning="loading" tip="加载中...">
+      <a-alert 
+        v-if="isEditMode"
+        message="警告：如果这个问卷已被人提交过，编辑问卷会导致现有的提交记录永久丢失！" 
+        type="warning" 
+        show-icon
+        style="margin-bottom: 16px"
+      />
+      
       <a-form
         :model="formData"
         :rules="rules"

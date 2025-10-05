@@ -171,19 +171,14 @@ async function handleSubmit() {
     await apiService.submitAnswers(submitData)
     showSuccessModal.value = true
   } catch (error: any) {
-    // 如果是表单验证错误，滚动到第一个错误处
+    // 如果是表单验证错误
     if (error.errorFields && error.errorFields.length > 0) {
       message.error('请完成必填项后再提交')
       // 滚动到第一个错误字段
-      const firstErrorField = error.errorFields[0]
-      const fieldName = firstErrorField.name[0]
-      setTimeout(() => {
-        const errorElement = document.querySelector(`[name="${fieldName}"]`) || 
-                            document.querySelector('.ant-form-item-has-error')
-        if (errorElement) {
-          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        }
-      }, 100)
+      const errorElement = document.querySelector('.ant-form-item-has-error')
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
     } else {
       const errorMessage = error.message || String(error)
       if (errorMessage.includes('已经提交过')) {

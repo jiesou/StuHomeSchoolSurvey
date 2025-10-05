@@ -209,45 +209,6 @@ Deno.test("POST / - 缺少必要字段时应该返回400", async () => {
   assertEquals(body.error, "缺少必要字段");
 });
 
-// 测试更新问卷 - 已有提交记录时不允许更新
-Deno.test("PUT /:id - 已有提交记录时应该返回400", async () => {
-  using countStub = stub(
-    prisma.submission,
-    "count",
-    () => Promise.resolve(5) as any // 5个提交记录
-  );
-
-  const requestBody = {
-    title: "更新的问卷",
-    description: "更新的描述",
-    year: "2024",
-    semester: 1,
-    week: 10,
-    questions: [
-      {
-        description: "新问题",
-        config: { type: QuestionType.STAR, maxStars: 5, required: true }
-      }
-    ]
-  };
-
-  const ctx = testing.createMockContext({
-    path: "/1",
-    method: "PUT",
-    params: { id: "1" },
-    headers: [["content-type", "application/json"]],
-    body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
-  });
-
-  const middleware = surveyRouter.routes();
-  const next = testing.createMockNext();
-  await middleware(ctx, next);
-
-  assertEquals(ctx.response.status, 400);
-  const body = ctx.response.body as any;
-  assertEquals(body.error, "该问卷已有提交记录，不能修改问题。建议创建新问卷。");
-});
-
 // 测试删除问卷
 Deno.test("DELETE /:id - 应该成功删除问卷", async () => {
   using deleteStub = stub(

@@ -1,7 +1,9 @@
 // 提交答案相关的 API 路由
 import { Router } from "@oak/oak";
 import { prisma } from "../db.ts";
-import { SubmitAnswersRequest, UserRole } from "../types.ts";
+import { SubmitAnswersRequest } from "../types.ts";
+import { ensureUserExists } from "../middleware/user.ts";
+import { validateUserInput } from "../middleware/validation.ts";
 
 const submissionRouter = new Router();
 
@@ -17,14 +19,10 @@ submissionRouter.post("/", async (ctx) => {
     }
 
     // 验证用户输入长度
-    if (body.user.name.length > 100) {
+    const userValidationError = validateUserInput(body.user);
+    if (userValidationError) {
       ctx.response.status = 400;
-      ctx.response.body = { error: "姓名长度不能超过100个字符" };
-      return;
-    }
-    if (body.user.id_number.length > 50) {
-      ctx.response.status = 400;
-      ctx.response.body = { error: "学号长度不能超过50个字符" };
+      ctx.response.body = { error: userValidationError };
       return;
     }
 
@@ -41,35 +39,9 @@ submissionRouter.post("/", async (ctx) => {
     }
 
     // 查找或创建用户
-    let user = await prisma.user.findUnique({
-      where: {
-        id_number: body.user.id_number,
-      },
-    });
-
+    const user = await ensureUserExists(ctx, body.user);
     if (!user) {
-      try {
-        user = await prisma.user.create({
-          data: {
-            name: body.user.name,
-            id_number: body.user.id_number,
-            role: UserRole.STUDENT,
-          },
-        });
-      } catch (createError: any) {
-        // 处理学号重复的情况（可能是并发创建）
-        if (createError.code === 'P2002') {
-          ctx.response.status = 400;
-          ctx.response.body = { error: "该学号已被其他用户使用，请核实学号和姓名" };
-          return;
-        }
-        throw createError;
-      }
-    } else if (user.name !== body.user.name) {
-      // 学号存在但姓名不匹配
-      ctx.response.status = 400;
-      ctx.response.body = { error: "学号和姓名不匹配，请核实您的学号和姓名" };
-      return;
+      return; // 错误已在 middleware 中设置
     }
 
     // 检查是否已经提交过
