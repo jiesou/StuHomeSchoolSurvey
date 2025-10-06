@@ -1,158 +1,161 @@
-// 认证路由单元测试
+// 认证路由单元测试 - 使用 Test Steps
 import { assertEquals, assertExists } from "@std/assert";
 import { stub } from "@std/testing/mock";
 import { testing } from "@oak/oak";
 import { authRouter } from "./auth.ts";
 import { prisma } from "../db.ts";
 import { UserRole } from "../types.ts";
+import { hashPassword } from "../auth.ts";
 
-// 测试登录
-Deno.test("POST /login - 应该成功登录管理员", async () => {
-  const mockAdmin = {
-    id: 1,
-    name: "ADMIN",
-    id_number: "ADMIN",
-    role: UserRole.ADMIN,
-    password: "a2ccac6bc029eadbc8caeaff5d6dc232fc2f396265d6dc0778034f7a2ca827ef" // admin123的哈希
-  };
+// 登录测试组
+Deno.test("Authentication - 认证路由测试", async (t) => {
+  await t.step("POST /login - 应该成功登录管理员", async () => {
+    const passwordHash = await hashPassword("admin123");
+    const mockAdmin = {
+      id: 1,
+      name: "ADMIN",
+      id_number: "ADMIN",
+      role: UserRole.ADMIN,
+      password: passwordHash
+    };
 
-  using findUniqueStub = stub(
-    prisma.user,
-    "findUnique",
-    () => Promise.resolve(mockAdmin) as any
-  );
+    using findUniqueStub = stub(
+      prisma.user,
+      "findUnique",
+      () => Promise.resolve(mockAdmin) as any
+    );
 
-  const requestBody = {
-    id_number: "ADMIN",
-    password: "admin123"
-  };
+    const requestBody = {
+      id_number: "ADMIN",
+      password: "admin123"
+    };
 
-  const ctx = testing.createMockContext({
-    path: "/login",
-    method: "POST",
-    headers: [["content-type", "application/json"]],
-    body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
+    const ctx = testing.createMockContext({
+      path: "/login",
+      method: "POST",
+      headers: [["content-type", "application/json"]],
+      body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
+    });
+
+    const middleware = authRouter.routes();
+    const next = testing.createMockNext();
+    await middleware(ctx, next);
+
+    assertEquals(ctx.response.status, 200);
+    const body = ctx.response.body as any;
+    assertExists(body.token);
+    assertEquals(body.user.id, 1);
+    assertEquals(body.user.role, UserRole.ADMIN);
   });
 
-  const middleware = authRouter.routes();
-  const next = testing.createMockNext();
-  await middleware(ctx, next);
+  await t.step("POST /login - 错误密码应该返回401", async () => {
+    const passwordHash = await hashPassword("admin123");
+    const mockAdmin = {
+      id: 1,
+      name: "ADMIN",
+      id_number: "ADMIN",
+      role: UserRole.ADMIN,
+      password: passwordHash
+    };
 
-  assertEquals(ctx.response.status, 200);
-  const body = ctx.response.body as any;
-  assertExists(body.token);
-  assertEquals(body.user.id, 1);
-  assertEquals(body.user.role, UserRole.ADMIN);
-});
+    using findUniqueStub = stub(
+      prisma.user,
+      "findUnique",
+      () => Promise.resolve(mockAdmin) as any
+    );
 
-// 测试错误密码
-Deno.test("POST /login - 错误密码应该返回401", async () => {
-  const mockAdmin = {
-    id: 1,
-    name: "ADMIN",
-    id_number: "ADMIN",
-    role: UserRole.ADMIN,
-    password: "a2ccac6bc029eadbc8caeaff5d6dc232fc2f396265d6dc0778034f7a2ca827ef" // admin123的哈希
-  };
+    const requestBody = {
+      id_number: "ADMIN",
+      password: "wrongpassword"
+    };
 
-  using findUniqueStub = stub(
-    prisma.user,
-    "findUnique",
-    () => Promise.resolve(mockAdmin) as any
-  );
+    const ctx = testing.createMockContext({
+      path: "/login",
+      method: "POST",
+      headers: [["content-type", "application/json"]],
+      body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
+    });
 
-  const requestBody = {
-    id_number: "ADMIN",
-    password: "wrongpassword"
-  };
+    const middleware = authRouter.routes();
+    const next = testing.createMockNext();
+    await middleware(ctx, next);
 
-  const ctx = testing.createMockContext({
-    path: "/login",
-    method: "POST",
-    headers: [["content-type", "application/json"]],
-    body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
+    assertEquals(ctx.response.status, 401);
+    const body = ctx.response.body as any;
+    assertEquals(body.error, "用户名或密码错误");
   });
 
-  const middleware = authRouter.routes();
-  const next = testing.createMockNext();
-  await middleware(ctx, next);
+  await t.step("POST /login - 不存在的用户应该返回401", async () => {
+    using findUniqueStub = stub(
+      prisma.user,
+      "findUnique",
+      () => Promise.resolve(null) as any
+    );
 
-  assertEquals(ctx.response.status, 401);
-  const body = ctx.response.body as any;
-  assertEquals(body.error, "用户名或密码错误");
-});
+    const requestBody = {
+      id_number: "NOTEXIST",
+      password: "password"
+    };
 
-// 测试不存在的用户
-Deno.test("POST /login - 不存在的用户应该返回401", async () => {
-  using findUniqueStub = stub(
-    prisma.user,
-    "findUnique",
-    () => Promise.resolve(null) as any
-  );
+    const ctx = testing.createMockContext({
+      path: "/login",
+      method: "POST",
+      headers: [["content-type", "application/json"]],
+      body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
+    });
 
-  const requestBody = {
-    id_number: "NOTEXIST",
-    password: "password"
-  };
+    const middleware = authRouter.routes();
+    const next = testing.createMockNext();
+    await middleware(ctx, next);
 
-  const ctx = testing.createMockContext({
-    path: "/login",
-    method: "POST",
-    headers: [["content-type", "application/json"]],
-    body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
+    assertEquals(ctx.response.status, 401);
+    const body = ctx.response.body as any;
+    assertEquals(body.error, "用户名或密码错误");
   });
 
-  const middleware = authRouter.routes();
-  const next = testing.createMockNext();
-  await middleware(ctx, next);
+  await t.step("POST /register - 应该成功注册管理员", async () => {
+    const passwordHash = await hashPassword("password123");
+    const mockNewAdmin = {
+      id: 2,
+      name: "NewAdmin",
+      id_number: "NEWADMIN",
+      role: UserRole.ADMIN,
+      password: passwordHash
+    };
 
-  assertEquals(ctx.response.status, 401);
-  const body = ctx.response.body as any;
-  assertEquals(body.error, "用户名或密码错误");
-});
+    using findUniqueStub = stub(
+      prisma.user,
+      "findUnique",
+      () => Promise.resolve(null) as any
+    );
 
-// 测试注册
-Deno.test("POST /register - 应该成功注册管理员", async () => {
-  const mockNewAdmin = {
-    id: 2,
-    name: "NewAdmin",
-    id_number: "NEWADMIN",
-    role: UserRole.ADMIN,
-    password: "somehash"
-  };
+    using createStub = stub(
+      prisma.user,
+      "create",
+      () => Promise.resolve(mockNewAdmin) as any
+    );
 
-  using findUniqueStub = stub(
-    prisma.user,
-    "findUnique",
-    () => Promise.resolve(null) as any
-  );
+    const requestBody = {
+      name: "NewAdmin",
+      id_number: "NEWADMIN",
+      password: "password123"
+    };
 
-  using createStub = stub(
-    prisma.user,
-    "create",
-    () => Promise.resolve(mockNewAdmin) as any
-  );
+    const ctx = testing.createMockContext({
+      path: "/register",
+      method: "POST",
+      headers: [["content-type", "application/json"]],
+      body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
+    });
 
-  const requestBody = {
-    name: "NewAdmin",
-    id_number: "NEWADMIN",
-    password: "password123"
-  };
+    const middleware = authRouter.routes();
+    const next = testing.createMockNext();
+    await middleware(ctx, next);
 
-  const ctx = testing.createMockContext({
-    path: "/register",
-    method: "POST",
-    headers: [["content-type", "application/json"]],
-    body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
+    assertEquals(ctx.response.status, 201);
+    const body = ctx.response.body as any;
+    assertExists(body.token);
+    assertEquals(body.user.id, 2);
+    assertEquals(body.user.role, UserRole.ADMIN);
   });
-
-  const middleware = authRouter.routes();
-  const next = testing.createMockNext();
-  await middleware(ctx, next);
-
-  assertEquals(ctx.response.status, 201);
-  const body = ctx.response.body as any;
-  assertExists(body.token);
-  assertEquals(body.user.id, 2);
-  assertEquals(body.user.role, UserRole.ADMIN);
 });
