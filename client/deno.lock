@@ -5,9 +5,11 @@
     "npm:@vitejs/plugin-vue@^6.0.1": "6.0.1_vite@7.1.7__picomatch@4.0.3_vue@3.5.22__typescript@5.8.3_typescript@5.8.3",
     "npm:@vue/tsconfig@~0.8.1": "0.8.1_typescript@5.8.3_vue@3.5.22__typescript@5.8.3",
     "npm:ant-design-vue@^4.2.6": "4.2.6_vue@3.5.22__typescript@5.8.3_typescript@5.8.3",
+    "npm:chart.js@^4.5.0": "4.5.0",
     "npm:typescript@~5.8.3": "5.8.3",
     "npm:unplugin-vue-components@^29.1.0": "29.1.0_vue@3.5.22__typescript@5.8.3_typescript@5.8.3",
     "npm:vite@^7.1.7": "7.1.7_picomatch@4.0.3",
+    "npm:vue-chartjs@^5.3.2": "5.3.2_chart.js@4.5.0_vue@3.5.22__typescript@5.8.3_typescript@5.8.3",
     "npm:vue-router@^4.5.1": "4.5.1_vue@3.5.22__typescript@5.8.3_typescript@5.8.3",
     "npm:vue-tsc@^3.0.7": "3.0.8_typescript@5.8.3",
     "npm:vue@^3.5.21": "3.5.22_typescript@5.8.3",
@@ -219,6 +221,9 @@
         "@jridgewell/resolve-uri",
         "@jridgewell/sourcemap-codec"
       ]
+    },
+    "@kurkle/color@0.3.4": {
+      "integrity": "sha512-M5UknZPHRu3DEDWoipU6sE8PdkZ6Z/S+v4dD+Ke8IaNlpdSQah50lz1KtcFBa2vsdOnwbbnxJwVM4wty6udA5w=="
     },
     "@rolldown/pluginutils@1.0.0-beta.29": {
       "integrity": "sha512-NIJgOsMjbxAXvoGq/X0gD7VPMQ8j9g0BiDaNjVNVjvl+iKXxL3Jre0v31RmBYeLEmkbj2s02v8vFTbUXi5XS2Q=="
@@ -532,6 +537,12 @@
       "integrity": "sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==",
       "dependencies": [
         "fill-range"
+      ]
+    },
+    "chart.js@4.5.0": {
+      "integrity": "sha512-aYeC/jDgSEx8SHWZvANYMioYMZ2KX02W6f6uVfyteuCGcadDLcYVHdfdygsTQkQ4TKn5lghoojAsPj5pu0SnvQ==",
+      "dependencies": [
+        "@kurkle/color"
       ]
     },
     "chokidar@3.6.0": {
@@ -900,6 +911,13 @@
     "vscode-uri@3.1.0": {
       "integrity": "sha512-/BpdSx+yCQGnCvecbyXdxHDkuk55/G3xwnC0GqY4gmQ3j+A+g8kzzgB4Nk/SINjqn6+waqw3EgbVF2QKExkRxQ=="
     },
+    "vue-chartjs@5.3.2_chart.js@4.5.0_vue@3.5.22__typescript@5.8.3_typescript@5.8.3": {
+      "integrity": "sha512-NrkbRRoYshbXbWqJkTN6InoDVwVb90C0R7eAVgMWcB9dPikbruaOoTFjFYHE/+tNPdIe6qdLCDjfjPHQ0fw4jw==",
+      "dependencies": [
+        "chart.js",
+        "vue"
+      ]
+    },
     "vue-router@4.5.1_vue@3.5.22__typescript@5.8.3_typescript@5.8.3": {
       "integrity": "sha512-ogAF3P97NPm8fJsE4by9dwSYtDwXIY1nFY9T6DyQnGHd1E2Da94w9JIolpe42LJGIl0DwOHBi8TcRPlPGwbTtw==",
       "dependencies": [
@@ -960,9 +978,11 @@
         "npm:@vitejs/plugin-vue@^6.0.1",
         "npm:@vue/tsconfig@~0.8.1",
         "npm:ant-design-vue@^4.2.6",
+        "npm:chart.js@^4.5.0",
         "npm:typescript@~5.8.3",
         "npm:unplugin-vue-components@^29.1.0",
         "npm:vite@^7.1.7",
+        "npm:vue-chartjs@^5.3.2",
         "npm:vue-router@^4.5.1",
         "npm:vue-tsc@^3.0.7",
         "npm:vue@^3.5.21",
