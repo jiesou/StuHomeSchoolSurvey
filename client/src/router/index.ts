@@ -6,6 +6,11 @@ const routes = [
     redirect: '/admin'
   },
   {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/Login.vue')
+  },
+  {
     path: '/admin',
     component: () => import('../views/AdminLayout.vue'),
     children: [

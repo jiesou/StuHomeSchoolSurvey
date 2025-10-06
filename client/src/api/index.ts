@@ -11,11 +11,19 @@ import type {
 
 class ApiService {
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...options?.headers as Record<string, string>,
+    }
+
+    // 添加认证 token（如果存在）
+    const token = sessionStorage.getItem('token')
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+
     const response = await fetch(`/api/${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+      headers,
       ...options,
     })
 
@@ -76,6 +84,22 @@ class ApiService {
   // 获取问题统计洞察
   async getQuestionInsight(surveyId: number, questionId: number): Promise<QuestionInsight> {
     return this.request<QuestionInsight>(`surveys/${surveyId}/insights/${questionId}`)
+  }
+
+  // 登录
+  async login(id_number: string, password: string): Promise<{ token: string, user: any }> {
+    return this.request<{ token: string, user: any }>('auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ id_number, password }),
+    })
+  }
+
+  // 注册
+  async register(name: string, id_number: string, password: string): Promise<{ token: string, user: any }> {
+    return this.request<{ token: string, user: any }>('auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ name, id_number, password }),
+    })
   }
 }
 

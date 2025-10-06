@@ -7,7 +7,7 @@
     "db:generate": "npx prisma generate",
     "db:push": "npx prisma db push",
     "db:migrate": "npx prisma migrate dev",
-    "db:seed": "deno run -A --env-file prisma/seed.ts"
+    "db:seed": "deno run -A --env-file ./prisma/seed.ts"
   },
   "imports": {
     "@oak/oak": "jsr:@oak/oak@^17.1.6",
