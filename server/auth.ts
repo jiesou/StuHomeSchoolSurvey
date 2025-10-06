@@ -2,16 +2,23 @@
 import { SignJWT, jwtVerify } from "jose";
 import { crypto } from "@std/crypto";
 
-const JWT_SECRET = Deno.env.get("JWT_SECRET") || "";
-const PASSWORD_SALT = Deno.env.get("PASSWORD_SALT") || "";
-
-if (!JWT_SECRET || JWT_SECRET.length < 32) {
-  console.warn("警告：JWT_SECRET 未设置或长度不足32字符，请在环境变量中设置");
-}
-
-if (!PASSWORD_SALT) {
-  console.warn("警告：PASSWORD_SALT 未设置，请在环境变量中设置");
-}
+const JWT_SECRET = (() => {
+  const secret = Deno.env.get("JWT_SECRET");
+  if (!secret || secret.length < 32) {
+    console.warn("警告：JWT_SECRET 未设置或长度不足32字符。回落到不安全的默认值！");
+    // 返回一个安全的默认值，不至于 jose key error
+    return "00000000000000000000000000000000"; 
+  }
+  return secret;
+})();
+const PASSWORD_SALT = (() => {
+  const salt = Deno.env.get("PASSWORD_SALT");
+  if (!salt) {
+    console.warn("警告：PASSWORD_SALT 未设置。回落到不安全的默认值！");
+    return ""; 
+  }
+  return salt;
+})();
 
 // 生成密码哈希
 export async function hashPassword(password: string): Promise<string> {
