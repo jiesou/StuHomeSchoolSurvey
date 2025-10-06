@@ -5,12 +5,12 @@
       @back="$router.push('/admin')"
     />
     
-    <a-descriptions v-if="survey" bordered size="small" style="margin-bottom: 24px" :loading="loading">
-      <a-descriptions-item label="学年">{{ survey.year }}</a-descriptions-item>
-      <a-descriptions-item label="学期">{{ survey.semester === 1 ? '第一学期' : '第二学期' }}</a-descriptions-item>
-      <a-descriptions-item label="周次">第{{ survey.week }}周</a-descriptions-item>
-      <a-descriptions-item label="创建时间">{{ new Date(survey.created_at).toLocaleString() }}</a-descriptions-item>
-      <a-descriptions-item label="问题数量">{{ survey.questions?.length || 0 }}</a-descriptions-item>
+    <a-descriptions bordered size="small" style="margin-bottom: 24px" :loading="loading">
+      <a-descriptions-item label="学年">{{ survey?.year || '-' }}</a-descriptions-item>
+      <a-descriptions-item label="学期">{{ survey ? (survey.semester === 1 ? '第一学期' : '第二学期') : '-' }}</a-descriptions-item>
+      <a-descriptions-item label="周次">{{ survey ? `第${survey.week}周` : '-' }}</a-descriptions-item>
+      <a-descriptions-item label="创建时间">{{ survey ? new Date(survey.created_at).toLocaleString() : '-' }}</a-descriptions-item>
+      <a-descriptions-item label="问题数量">{{ survey?.questions?.length || 0 }}</a-descriptions-item>
       <a-descriptions-item label="回答人数">{{ submissionCount }}</a-descriptions-item>
     </a-descriptions>
     

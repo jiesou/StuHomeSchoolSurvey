@@ -16,7 +16,7 @@
               :value="(insights[question.id] as StarDistributionInsight).average.toFixed(2)" 
               suffix="星"
             />
-            <div style="margin-top: 8px; color: #666">
+            <div style="margin-top: 8px; opacity: 0.65">
               共 {{ (insights[question.id] as StarDistributionInsight).total }} 条回答
             </div>
           </div>

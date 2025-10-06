@@ -1,8 +1,8 @@
 <template>
   <a-layout style="min-height: 100vh">
-    <a-layout-header style="background: #fff; padding: 0">
+    <a-layout-header style="padding: 0">
       <div class="header-content">
-        <h1 style="margin: 0; color: #1890ff">家校互联问卷系统</h1>
+        <h1 style="margin: 0">家校互联问卷系统</h1>
         <a-space>
           <a-button type="primary" @click="$router.push('/admin')">
             问卷列表
@@ -56,7 +56,6 @@
 }
 
 .content-wrapper {
-  background: #f5f5f5;
   padding: 24px 16px;
 }
 
@@ -69,7 +68,6 @@
 .content-inner {
   max-width: 1400px;
   margin: 0 auto;
-  background: #fff;
   padding: 24px;
   border-radius: 4px;
 }

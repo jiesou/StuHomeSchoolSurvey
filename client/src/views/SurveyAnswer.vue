@@ -12,7 +12,7 @@
         <a-tag>第{{ survey.week }}周</a-tag>
       </template>
       
-      <p v-if="survey.description" style="margin-bottom: 24px; color: #666">
+      <p v-if="survey.description" style="margin-bottom: 24px; opacity: 0.65">
         {{ survey.description }}
       </p>
       
@@ -206,7 +206,6 @@ onMounted(() => {
 .question-item {
   margin-bottom: 24px;
   padding: 16px;
-  background: #fafafa;
   border-radius: 6px;
 }
 
