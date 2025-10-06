@@ -1,10 +1,10 @@
 <template>
-  <div>
     <a-page-header title="问卷列表" />
 
-    <div style="overflow-x: auto;">
-      <a-table :dataSource="surveys" :columns="columns" :pagination="pagination" :loading="loading"
-        :style="{ minWidth: '800px' }"
+      <a-table :dataSource="surveys" :columns="columns"
+        :pagination="pagination"
+        :loading="loading"
+        :scroll="{ x: 'max-content' }"
         @change="handleTableChange" rowKey="id">
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'semester'">
@@ -53,8 +53,6 @@
           </template>
         </template>
       </a-table>
-    </div>
-  </div>
 </template>
 
 <script setup lang="ts">
