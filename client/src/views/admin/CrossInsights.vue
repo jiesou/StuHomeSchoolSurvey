@@ -119,7 +119,11 @@ async function loadInsight(questionIndex: number) {
   loadingInsights.value[questionIndex] = true
   try {
     // 使用第一个问卷的问题ID作为参考
-    const firstSurvey = await apiService.getSurvey(surveyIds.value[0])
+    const firstSurveyId = surveyIds.value[0]
+    if (!firstSurveyId) {
+      throw new Error('问卷ID无效')
+    }
+    const firstSurvey = await apiService.getSurvey(firstSurveyId)
     const matchingQuestion = firstSurvey.questions?.find(
       q => q.description === question.description
     )
@@ -166,7 +170,7 @@ function getChartData(questionIndex: number) {
   // 每个用户一条线
   const datasets = insight.users.map((user, idx) => ({
     label: user.user_name,
-    data: user.histories.map(h => h.answer_value ? parseFloat(h.answer_value) : null),
+    data: user.histories.map(h => h.answer_value ? parseFloat(h.answer_value) : null) as (number | null)[],
     borderColor: colors[idx % colors.length],
     backgroundColor: colors[idx % colors.length],
     tension: 0.3
@@ -196,6 +200,9 @@ async function loadQuestions() {
 
     // 找出所有问卷都有的问题（通过description匹配）
     const firstSurvey = surveys[0]
+    if (!firstSurvey) {
+      throw new Error('无法加载问卷')
+    }
     const commonQuestions: { description: string | null }[] = []
 
     firstSurvey.questions?.forEach(q1 => {
@@ -203,7 +210,7 @@ async function loadQuestions() {
         survey.questions?.some(q2 => q2.description === q1.description)
       )
       if (existsInAll) {
-        commonQuestions.push({ description: q1.description })
+        commonQuestions.push({ description: q1.description || null })
       }
     })
 

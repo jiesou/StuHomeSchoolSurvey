@@ -49,7 +49,7 @@ insightsRouter.get("/:questionId", needAdminAuthorization, async (ctx) => {
 
     // 检查所有问题类型是否一致
     const firstType = (questions[0].config as any).type;
-    const allSameType = questions.every(q => (q.config as any).type === firstType);
+    const allSameType = questions.every((q: any) => (q.config as any).type === firstType);
 
     if (!allSameType) {
       ctx.response.status = 400;
@@ -64,8 +64,8 @@ insightsRouter.get("/:questionId", needAdminAuthorization, async (ctx) => {
     });
 
     // 构建结果：users[1-10].surveys[histories]: AnswerValue
-    const result = await Promise.all(users.map(async (user) => {
-      const histories = await Promise.all(questions.map(async (question) => {
+    const result = await Promise.all(users.map(async (user: any) => {
+      const histories = await Promise.all(questions.map(async (question: any) => {
         const answer = await prisma.answer.findFirst({
           where: {
             question_id: question.id,

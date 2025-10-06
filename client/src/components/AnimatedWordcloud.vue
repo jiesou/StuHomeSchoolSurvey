@@ -30,7 +30,7 @@ let intervalId: number | null = null
 
 // 当前展示的问卷信息
 const currentSurveyInfo = computed(() => {
-  if (props.users.length === 0 || props.users[0].histories.length === 0) {
+  if (props.users.length === 0 || !props.users[0] || props.users[0].histories.length === 0) {
     return ''
   }
   const history = props.users[0].histories[currentIndex.value]
@@ -95,9 +95,10 @@ const currentWords = computed(() => {
 
 onMounted(() => {
   // 每秒切换到下一个问卷
-  if (props.users.length > 0 && props.users[0].histories.length > 1) {
+  if (props.users.length > 0 && props.users[0] && props.users[0].histories.length > 1) {
+    const historiesLength = props.users[0].histories.length
     intervalId = window.setInterval(() => {
-      currentIndex.value = (currentIndex.value + 1) % props.users[0].histories.length
+      currentIndex.value = (currentIndex.value + 1) % historiesLength
     }, 1000)
   }
 })

@@ -93,8 +93,8 @@ const pagination = ref({
 
 const rowSelection = computed(() => ({
   selectedRowKeys: selectedRowKeys.value,
-  onChange: (keys: number[]) => {
-    selectedRowKeys.value = keys
+  onChange: (keys: (string | number)[]) => {
+    selectedRowKeys.value = keys.map(k => typeof k === 'string' ? parseInt(k) : k)
   }
 }))
 
