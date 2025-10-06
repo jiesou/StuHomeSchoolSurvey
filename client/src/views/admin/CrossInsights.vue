@@ -71,6 +71,7 @@ const cardRefs = new Map<number, Element>()
 let observer: IntersectionObserver | null = null
 
 const surveyIds = ref<number[]>([])
+const surveys = ref<Survey[]>([]) // 存储已加载的问卷数据，避免重复请求
 
 const chartOptions = {
   responsive: true,
@@ -118,12 +119,12 @@ async function loadInsight(questionIndex: number) {
 
   loadingInsights.value[questionIndex] = true
   try {
-    // 使用第一个问卷的问题ID作为参考
-    const firstSurveyId = surveyIds.value[0]
-    if (!firstSurveyId) {
-      throw new Error('问卷ID无效')
+    // 使用已缓存的问卷数据，避免重复请求
+    const firstSurvey = surveys.value[0]
+    if (!firstSurvey) {
+      throw new Error('问卷数据未加载')
     }
-    const firstSurvey = await apiService.getSurvey(firstSurveyId)
+    
     const matchingQuestion = firstSurvey.questions?.find(
       q => q.description === question.description
     )
@@ -194,19 +195,22 @@ async function loadQuestions() {
     }
 
     // 加载所有问卷，找出共同的问题
-    const surveys = await Promise.all(
+    const loadedSurveys = await Promise.all(
       surveyIds.value.map(id => apiService.getSurvey(id))
     )
+    
+    // 缓存问卷数据
+    surveys.value = loadedSurveys
 
     // 找出所有问卷都有的问题（通过description匹配）
-    const firstSurvey = surveys[0]
+    const firstSurvey = loadedSurveys[0]
     if (!firstSurvey) {
       throw new Error('无法加载问卷')
     }
     const commonQuestions: { description: string | null }[] = []
 
     firstSurvey.questions?.forEach(q1 => {
-      const existsInAll = surveys.every(survey => 
+      const existsInAll = loadedSurveys.every(survey => 
         survey.questions?.some(q2 => q2.description === q1.description)
       )
       if (existsInAll) {
