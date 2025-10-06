@@ -43,132 +43,144 @@ async function main() {
   });
   console.log("✓ 创建示例学生2:", student2);
 
-  // 创建示例问卷
-  const survey = await prisma.survey.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
-      title: "家校互联满意度问卷",
-      description: "本问卷旨在了解学生和家长对学校各方面的满意度，帮助我们改进服务质量。",
-      year: "2025",
-      semester: 1,
-      week: 1,
-      questions: {
-        create: [
-          {
-            description: "您对学校整体教学质量的满意度如何？",
-            config: {
-              type: QuestionType.STAR,
-              maxStars: 5,
-              required: true
-            }
-          },
-          {
-            description: "您对学校食堂的满意度如何？",
-            config: {
-              type: QuestionType.STAR,
-              maxStars: 5,
-              required: true
-            }
-          },
-          {
-            description: "您对学校宿舍环境的满意度如何？",
-            config: {
-              type: QuestionType.STAR,
-              maxStars: 5,
-              required: true
-            }
-          },
-          {
-            description: "您对学校的建议或意见（可选）",
-            config: {
-              type: QuestionType.INPUT,
-              placeholder: "请输入您的建议...",
-              required: false,
-              maxLength: 500
-            }
-          }
-        ]
+  // 创建更多示例学生
+  const students = [];
+  for (let i = 1; i <= 10; i++) {
+    const student = await prisma.user.upsert({
+      where: { id_number: `202300${i}` },
+      update: {},
+      create: {
+        name: `学生${i}`,
+        id_number: `202300${i}`,
+        role: UserRole.STUDENT
+      }
+    });
+    students.push(student);
+  }
+  console.log(`✓ 创建 ${students.length} 个示例学生`);
+
+  // 创建多个相似的问卷（第1-4周）
+  const surveys = [];
+  const questionTemplates = [
+    {
+      description: "您对学校整体教学质量的满意度如何？",
+      config: {
+        type: QuestionType.STAR,
+        maxStars: 5,
+        required: true
       }
     },
-    include: {
-      questions: true
+    {
+      description: "您对学校食堂的满意度如何？",
+      config: {
+        type: QuestionType.STAR,
+        maxStars: 5,
+        required: true
+      }
+    },
+    {
+      description: "您对学校宿舍环境的满意度如何？",
+      config: {
+        type: QuestionType.STAR,
+        maxStars: 5,
+        required: true
+      }
+    },
+    {
+      description: "您对学校的建议或意见（可选）",
+      config: {
+        type: QuestionType.INPUT,
+        placeholder: "请输入您的建议...",
+        required: false,
+        maxLength: 500
+      }
     }
-  });
-  console.log("✓ 创建示例问卷:", survey);
+  ];
 
-  // 为示例学生创建答卷
-  if (survey.questions && survey.questions.length >= 4) {
-    const submission1 = await prisma.submission.upsert({
-      where: {
-        survey_id_user_id: {
-          survey_id: survey.id,
-          user_id: student1.id
-        }
-      },
+  for (let week = 1; week <= 4; week++) {
+    const survey = await prisma.survey.upsert({
+      where: { id: week },
       update: {},
       create: {
-        survey_id: survey.id,
-        user_id: student1.id,
-        answers: {
-          create: [
-            {
-              question_id: survey.questions[0].id,
-              value: "5"
-            },
-            {
-              question_id: survey.questions[1].id,
-              value: "4"
-            },
-            {
-              question_id: survey.questions[2].id,
-              value: "4"
-            },
-            {
-              question_id: survey.questions[3].id,
-              value: "学校整体很好，希望能增加一些课外活动。"
-            }
-          ]
-        }
-      }
-    });
-    console.log("✓ 创建学生1的答卷:", submission1);
-
-    const submission2 = await prisma.submission.upsert({
-      where: {
-        survey_id_user_id: {
-          survey_id: survey.id,
-          user_id: student2.id
+        title: `家校互联满意度问卷 - 第${week}周`,
+        description: "本问卷旨在了解学生和家长对学校各方面的满意度，帮助我们改进服务质量。",
+        year: "2025",
+        semester: 1,
+        week: week,
+        created_at: new Date(Date.now() - (4 - week) * 7 * 24 * 60 * 60 * 1000), // 按周递增
+        questions: {
+          create: questionTemplates
         }
       },
-      update: {},
-      create: {
-        survey_id: survey.id,
-        user_id: student2.id,
-        answers: {
-          create: [
-            {
-              question_id: survey.questions[0].id,
-              value: "5"
-            },
-            {
-              question_id: survey.questions[1].id,
-              value: "3"
-            },
-            {
-              question_id: survey.questions[2].id,
-              value: "5"
-            },
-            {
-              question_id: survey.questions[3].id,
-              value: "宿舍很好，食堂希望能多一些菜品选择。"
-            }
-          ]
-        }
+      include: {
+        questions: true
       }
     });
-    console.log("✓ 创建学生2的答卷:", submission2);
+    surveys.push(survey);
+    console.log(`✓ 创建第${week}周问卷:`, survey.title);
   }
+
+  // 为每个学生在每个问卷中创建答卷
+  const inputSuggestions = [
+    "学校整体很好，希望能增加课外活动。",
+    "教学质量不错，食堂可以改进。",
+    "宿舍环境舒适，希望能优化网络。",
+    "老师认真负责，建议增加体育设施。",
+    "课程安排合理，希望图书馆开放时间更长。",
+    "校园环境优美，希望增加自习室。",
+    "教学设备先进，希望食堂菜品更丰富。",
+    "学习氛围好，建议增加社团活动。",
+    "师资力量强，希望改善宿舍热水供应。",
+    "课程内容充实，建议优化选课系统。"
+  ];
+
+  let submissionCount = 0;
+  for (const survey of surveys) {
+    if (survey.questions && survey.questions.length >= 4) {
+      for (let i = 0; i < students.length; i++) {
+        const student = students[i];
+        // 模拟评分有轻微波动
+        const baseScore = 3 + Math.random() * 2; // 3-5分之间
+        const variation = () => Math.max(1, Math.min(5, Math.round(baseScore + (Math.random() - 0.5) * 2)));
+        
+        await prisma.submission.upsert({
+          where: {
+            survey_id_user_id: {
+              survey_id: survey.id,
+              user_id: student.id
+            }
+          },
+          update: {},
+          create: {
+            survey_id: survey.id,
+            user_id: student.id,
+            answers: {
+              create: [
+                {
+                  question_id: survey.questions[0].id,
+                  value: String(variation())
+                },
+                {
+                  question_id: survey.questions[1].id,
+                  value: String(variation())
+                },
+                {
+                  question_id: survey.questions[2].id,
+                  value: String(variation())
+                },
+                {
+                  question_id: survey.questions[3].id,
+                  value: inputSuggestions[i]
+                }
+              ]
+            }
+          }
+        });
+        submissionCount++;
+      }
+    }
+  }
+  console.log(`✓ 创建 ${submissionCount} 份答卷`);
 
   console.log("播种完成！");
   console.log("\n管理员登录信息:");

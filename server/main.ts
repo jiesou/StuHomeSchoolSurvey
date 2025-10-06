@@ -2,6 +2,7 @@ import { Application, Router } from "@oak/oak";
 import { surveyRouter } from "./routes/surveys.ts";
 import { submissionRouter } from "./routes/submissions.ts";
 import { authRouter } from "./routes/auth.ts";
+import { insightsRouter } from "./routes/insights.ts";
 
 const app = new Application();
 const router = new Router();
@@ -74,6 +75,7 @@ apiRouter.use(
   submissionRouter.routes(),
   submissionRouter.allowedMethods(),
 );
+apiRouter.use("/insights", insightsRouter.routes(), insightsRouter.allowedMethods());
 
 // 注册路由
 app.use(router.routes());

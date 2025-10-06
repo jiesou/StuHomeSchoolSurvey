@@ -5,7 +5,8 @@ import type {
   SurveyListResponse, 
   SurveyResultResponse,
   SubmitAnswersRequest,
-  QuestionInsight
+  QuestionInsight,
+  CrossInsightResponse
 } from '../types'
 
 
@@ -84,6 +85,12 @@ class ApiService {
   // 获取问题统计洞察
   async getQuestionInsight(surveyId: number, questionId: number): Promise<QuestionInsight> {
     return this.request<QuestionInsight>(`surveys/${surveyId}/insights/${questionId}`)
+  }
+
+  // 获取跨问卷洞察
+  async getCrossInsight(questionId: number, surveyIds: number[]): Promise<CrossInsightResponse> {
+    const surveysParam = surveyIds.join(',')
+    return this.request<CrossInsightResponse>(`insights/${questionId}?surveys=${surveysParam}`)
   }
 
   // 登录

@@ -1,10 +1,21 @@
 <template>
     <a-page-header title="问卷列表" />
 
+    <div style="margin-bottom: 16px">
+      <a-button 
+        type="primary" 
+        :disabled="selectedRowKeys.length < 2" 
+        @click="viewCrossInsights"
+      >
+        聚合分析 ({{ selectedRowKeys.length }} 个问卷)
+      </a-button>
+    </div>
+
       <a-table :dataSource="surveys" :columns="columns"
         :pagination="pagination"
         :loading="loading"
         :scroll="{ x: 'max-content' }"
+        :row-selection="rowSelection"
         @change="handleTableChange" rowKey="id">
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'semester'">
@@ -66,6 +77,7 @@ import type { Survey, SurveyListResponse } from '../../types'
 const router = useRouter()
 const loading = ref(false)
 const surveys = ref<Survey[]>([])
+const selectedRowKeys = ref<number[]>([])
 const pagination = ref({
   current: 1,
   pageSize: 10,
@@ -75,6 +87,13 @@ const pagination = ref({
   showQuickJumper: true,
   showTotal: (total: number) => `共 ${total} 条`
 })
+
+const rowSelection = {
+  selectedRowKeys: selectedRowKeys,
+  onChange: (keys: number[]) => {
+    selectedRowKeys.value = keys
+  }
+}
 
 const columns = [
   {
@@ -178,6 +197,15 @@ async function deleteSurvey(survey: Survey) {
   } catch (error) {
     message.error('删除失败：' + (error as Error).message)
   }
+}
+
+function viewCrossInsights() {
+  if (selectedRowKeys.value.length < 2) {
+    message.warning('请至少选择 2 个问卷进行聚合分析')
+    return
+  }
+  const surveyIds = selectedRowKeys.value.join(',')
+  router.push(`/admin/cross-insights?surveys=${surveyIds}`)
 }
 
 onMounted(() => {

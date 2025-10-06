@@ -108,6 +108,38 @@ export interface SurveyResultResponse {
   limit: number;
 }
 
+// 跨问卷洞察响应类型
+export interface CrossInsightResponse {
+  question: {
+    id: number;
+    description: string | null;
+    config: QuestionConfig;
+  };
+  users: {
+    user: {
+      id: number;
+      name: string;
+      id_number: string;
+    };
+    histories: {
+      survey_id: number;
+      survey_created_at: Date;
+      survey_year: string;
+      survey_semester: number;
+      survey_week: number;
+      answer_value: string;
+    }[];
+  }[];
+  surveys: {
+    id: number;
+    title: string;
+    year: string;
+    semester: number;
+    week: number;
+    created_at: Date;
+  }[];
+}
+
 // 统计洞察相关类型
 export interface WordCloudInsight {
   type: 'wordcloud';
