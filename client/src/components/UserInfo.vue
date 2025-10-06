@@ -2,9 +2,6 @@
   <div class="user-info">
     <a-dropdown v-if="user" placement="bottomRight">
       <a-button type="text">
-        <template #icon>
-          <span style="margin-right: 8px">👤</span>
-        </template>
         {{ user.name }}
       </a-button>
       <template #overlay>
