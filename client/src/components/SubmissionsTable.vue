@@ -17,7 +17,7 @@
         <span v-if="getAnswer(record as Submission, (column as CustomColumn).questionId!)">
           {{ formatAnswer(getAnswer(record as Submission, (column as CustomColumn).questionId!)!, (column as CustomColumn).questionConfig!) }}
         </span>
-        <span v-else style="color: #ccc">未回答</span>
+        <span v-else style="opacity: 0.45">未回答</span>
       </template>
     </template>
   </a-table>

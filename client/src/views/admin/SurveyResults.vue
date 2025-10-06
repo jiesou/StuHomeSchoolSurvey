@@ -5,12 +5,12 @@
       @back="$router.push('/admin')"
     />
     
-    <a-descriptions v-if="survey" bordered size="small" style="margin-bottom: 24px">
-      <a-descriptions-item label="学年">{{ survey.year }}</a-descriptions-item>
-      <a-descriptions-item label="学期">{{ survey.semester === 1 ? '第一学期' : '第二学期' }}</a-descriptions-item>
-      <a-descriptions-item label="周次">第{{ survey.week }}周</a-descriptions-item>
-      <a-descriptions-item label="创建时间">{{ new Date(survey.created_at).toLocaleString() }}</a-descriptions-item>
-      <a-descriptions-item label="问题数量">{{ survey.questions?.length || 0 }}</a-descriptions-item>
+    <a-descriptions bordered size="small" style="margin-bottom: 24px" :loading="loading">
+      <a-descriptions-item label="学年">{{ survey?.year || '-' }}</a-descriptions-item>
+      <a-descriptions-item label="学期">{{ survey ? (survey.semester === 1 ? '第一学期' : '第二学期') : '-' }}</a-descriptions-item>
+      <a-descriptions-item label="周次">{{ survey ? `第${survey.week}周` : '-' }}</a-descriptions-item>
+      <a-descriptions-item label="创建时间">{{ survey ? new Date(survey.created_at).toLocaleString() : '-' }}</a-descriptions-item>
+      <a-descriptions-item label="问题数量">{{ survey?.questions?.length || 0 }}</a-descriptions-item>
       <a-descriptions-item label="回答人数">{{ submissionCount }}</a-descriptions-item>
     </a-descriptions>
     
@@ -42,14 +42,18 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const loading = ref(false)
 const survey = ref<Survey | null>(null)
 const submissionCount = ref(0)
 
 async function loadData() {
+  loading.value = true
   try {
     survey.value = await apiService.getSurvey(parseInt(props.id))
   } catch (error) {
     console.error('加载数据失败：', error)
+  } finally {
+    loading.value = false
   }
 }
 
