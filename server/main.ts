@@ -1,9 +1,29 @@
 import { Application, Router } from "@oak/oak";
 import { surveyRouter } from "./routes/surveys.ts";
 import { submissionRouter } from "./routes/submissions.ts";
+import { authRouter } from "./routes/auth.ts";
 
 const app = new Application();
 const router = new Router();
+
+// 日志中间件
+app.use(async (ctx, next) => {
+  const start = Date.now();
+  // 核心：等待所有后续中间件和路由处理完成
+  await next(); 
+  const end = Date.now();
+  const ms = end - start;
+  // 1. 获取时间戳，格式化为 [YYYY-MM-DD HH:mm:ss.sss]
+  const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 23);
+  // 2. 获取客户端 IP 地址 (使用 Oak 提供的 ctx.request.ip)
+  const ip = ctx.request.ip;
+  // 3. 获取请求方法和路径
+  const method = ctx.request.method;
+  const path = ctx.request.url.pathname;
+  // 4. 获取响应状态码
+  const status = String(ctx.response.status);
+  console.log(`[${timestamp}] ${ip} "${method} ${path}" ${status} ${ms}ms`);
+});
 
 // CORS 中间件
 app.use(async (ctx, next) => {
@@ -47,6 +67,7 @@ router.get("/health", (ctx) => {
 });
 const apiRouter = new Router();
 apiRouter.prefix("/api");
+apiRouter.use("/auth", authRouter.routes(), authRouter.allowedMethods());
 apiRouter.use("/surveys", surveyRouter.routes(), surveyRouter.allowedMethods());
 apiRouter.use(
   "/submissions",

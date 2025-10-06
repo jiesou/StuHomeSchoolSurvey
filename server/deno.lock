@@ -9,6 +9,7 @@
     "jsr:@std/async@^1.0.13": "1.0.14",
     "jsr:@std/bytes@1": "1.0.6",
     "jsr:@std/crypto@1": "1.0.5",
+    "jsr:@std/crypto@^1.0.5": "1.0.5",
     "jsr:@std/data-structures@^1.0.9": "1.0.9",
     "jsr:@std/encoding@1": "1.0.10",
     "jsr:@std/encoding@^1.0.10": "1.0.10",
@@ -25,6 +26,7 @@
     "npm:@types/node@*": "24.2.0",
     "npm:jieba-wasm@*": "2.4.0",
     "npm:jieba-wasm@^2.4.0": "2.4.0",
+    "npm:jose@^6.1.0": "6.1.0",
     "npm:path-to-regexp@^6.3.0": "6.3.0",
     "npm:prisma@^6.16.3": "6.16.3"
   },
@@ -34,7 +36,7 @@
       "dependencies": [
         "jsr:@std/assert@1",
         "jsr:@std/bytes",
-        "jsr:@std/crypto",
+        "jsr:@std/crypto@1",
         "jsr:@std/encoding@1",
         "jsr:@std/http",
         "jsr:@std/media-types"
@@ -267,6 +269,9 @@
       "integrity": "sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==",
       "bin": true
     },
+    "jose@6.1.0": {
+      "integrity": "sha512-TTQJyoEoKcC1lscpVDCSsVgYzUDg/0Bt3WE//WiTPK6uOCQC2KZS4MpugbMWt/zyjkopgZoXhZuCi00gLudfUA=="
+    },
     "node-fetch-native@1.6.7": {
       "integrity": "sha512-g9yhqoedzIUm0nTnTqAQvueMPVOuIY16bqgAJJC8XOOubYFNwz6IER9qs0Gq2Xd0+CecCKFjtdDTMA4u4xG06Q=="
     },
@@ -405,7 +410,9 @@
     "dependencies": [
       "jsr:@oak/oak@^17.1.6",
       "jsr:@std/assert@^1.0.14",
-      "jsr:@std/testing@^1.0.15"
+      "jsr:@std/crypto@^1.0.5",
+      "jsr:@std/testing@^1.0.15",
+      "npm:jose@^6.1.0"
     ],
     "packageJson": {
       "dependencies": [

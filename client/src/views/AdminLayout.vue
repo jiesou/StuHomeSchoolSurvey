@@ -2,9 +2,7 @@
     <a-layout-header class="header-content">
         <h1>家校互联问卷系统</h1>
         <a-space>
-          <a-button type="primary" @click="$router.push('/admin')">
-            问卷列表
-          </a-button>
+          <UserInfo />
           <a-button @click="$router.push('/admin/create')">
             创建问卷
           </a-button>
@@ -17,7 +15,21 @@
 </template>
 
 <script setup lang="ts">
-// 管理端布局组件
+import { onMounted } from 'vue'
+import UserInfo from '../components/UserInfo.vue'
+
+// 检查登录状态
+const checkAuth = () => {
+  const token = sessionStorage.getItem('token')
+  if (!token) {
+    // 未登录，跳转到登录页
+    location.replace('/login')
+  }
+}
+
+onMounted(() => {
+  checkAuth()
+})
 </script>
 
 <style scoped>

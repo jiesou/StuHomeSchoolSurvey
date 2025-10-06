@@ -3,15 +3,18 @@
     "dev": "deno run -A --env-file --watch main.ts",
     "start": "deno run -A --env-file main.ts",
     "build:windows": "deno compile -A --target x86_64-pc-windows-msvc main.ts",
-    "test": "deno test -A",
+    "test": "deno test --env-file -A",
     "db:generate": "npx prisma generate",
     "db:push": "npx prisma db push",
-    "db:migrate": "npx prisma migrate dev"
+    "db:migrate": "npx prisma migrate dev",
+    "db:seed": "deno run -A --env-file ./prisma/seed.ts"
   },
   "imports": {
     "@oak/oak": "jsr:@oak/oak@^17.1.6",
     "@std/assert": "jsr:@std/assert@^1.0.14", // dev:test
-    "@std/testing": "jsr:@std/testing@^1.0.15" // dev:test
+    "@std/testing": "jsr:@std/testing@^1.0.15", // dev:test
+    "jose": "npm:jose@^6.1.0",
+    "@std/crypto": "jsr:@std/crypto@^1.0.5"
   },
   "nodeModulesDir": "auto"
 }

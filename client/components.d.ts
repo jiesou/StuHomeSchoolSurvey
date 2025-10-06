@@ -45,5 +45,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SubmissionsTable: typeof import('./src/components/SubmissionsTable.vue')['default']
     SurveyInsights: typeof import('./src/components/SurveyInsights.vue')['default']
+    UserInfo: typeof import('./src/components/UserInfo.vue')['default']
   }
 }
