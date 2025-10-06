@@ -1,8 +1,6 @@
 <template>
-  <a-layout style="min-height: 100vh">
-    <a-layout-header style="padding: 0">
-      <div class="header-content">
-        <h1 style="margin: 0">家校互联问卷系统</h1>
+    <a-layout-header class="header-content">
+        <h1>家校互联问卷系统</h1>
         <a-space>
           <a-button type="primary" @click="$router.push('/admin')">
             问卷列表
@@ -11,15 +9,11 @@
             创建问卷
           </a-button>
         </a-space>
-      </div>
     </a-layout-header>
     
     <a-layout-content class="content-wrapper">
-      <div class="content-inner">
         <router-view />
-      </div>
     </a-layout-content>
-  </a-layout>
 </template>
 
 <script setup lang="ts">
@@ -30,7 +24,7 @@
 .ant-layout-header {
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 3; /* 1 会比 table 低 */
   width: 100%;
 }
 
@@ -65,11 +59,10 @@
   }
 }
 
-.content-inner {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 24px;
-  border-radius: 4px;
+.header-content h1 {
+  color: #f5f5f5;
+  margin: 0;
+  font-size: 1.5rem;
 }
 
 @media (max-width: 767px) {

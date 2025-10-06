@@ -1,14 +1,14 @@
 <template>
-  <div id="container">
-    <a-config-provider :locale="zhCN" :theme="themeConfig">
-      <router-view />
-    </a-config-provider>
-  </div>
+  <a-config-provider :locale="zhCN" :theme="themeConfig">
+    <a-layout id="container" style="min-height: 100vh;">
+        <router-view />
+    </a-layout>
+  </a-config-provider>
 </template>
 
 <script setup lang="ts">
 // 主应用组件
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import zhCN from 'ant-design-vue/es/locale/zh_CN';
 import { theme } from 'ant-design-vue';
 
@@ -17,27 +17,18 @@ const isDarkMode = ref(false);
 const mediaQuery = ref<MediaQueryList | null>(null);
 
 // 主题配置
-const themeConfig = ref({
-  algorithm: theme.defaultAlgorithm
-});
-
-// 更新主题
-function updateTheme(dark: boolean) {
-  isDarkMode.value = dark;
-  themeConfig.value = {
-    algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm
-  };
-}
-
+const themeConfig = computed(() => ({
+  algorithm: isDarkMode.value ? theme.darkAlgorithm : theme.defaultAlgorithm
+}));
 // 监听系统深色模式变化
 function handleColorSchemeChange(e: MediaQueryListEvent) {
-  updateTheme(e.matches);
+  isDarkMode.value = e.matches;
 }
 
 onMounted(() => {
   // 检测系统深色模式偏好
   mediaQuery.value = window.matchMedia('(prefers-color-scheme: dark)');
-  updateTheme(mediaQuery.value.matches);
+  isDarkMode.value = mediaQuery.value.matches;
   
   // 监听系统深色模式变化
   mediaQuery.value.addEventListener('change', handleColorSchemeChange);
