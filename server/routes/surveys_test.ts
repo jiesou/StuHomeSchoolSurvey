@@ -149,10 +149,24 @@ Deno.test("POST / - 应该成功创建问卷", async () => {
     ]
   };
 
+  const mockAdmin = {
+    id: 1,
+    name: "ADMIN",
+    id_number: "ADMIN",
+    role: 20,
+    password: "hash"
+  };
+
   using createStub = stub(
     prisma.survey,
     "create",
     () => Promise.resolve(mockCreatedSurvey) as any
+  );
+
+  using findUniqueStub = stub(
+    prisma.user,
+    "findUnique",
+    () => Promise.resolve(mockAdmin) as any
   );
 
   const requestBody = {
@@ -172,7 +186,7 @@ Deno.test("POST / - 应该成功创建问卷", async () => {
   const ctx = testing.createMockContext({
     path: "/",
     method: "POST",
-    headers: [["content-type", "application/json"]],
+    headers: [["content-type", "application/json"], ["authorization", "Bearer mock-token"]],
     body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
   });
 
