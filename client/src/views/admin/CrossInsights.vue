@@ -65,8 +65,8 @@ ChartJS.register(
 const route = useRoute()
 const loading = ref(true)
 const questions = ref<{ description: string | null }[]>([])
-const insights = ref<Record<number, CrossInsightResponse>>({})
-const loadingInsights = ref<Record<number, boolean>>({})
+const insights = ref<CrossInsightResponse[]>([])
+const loadingInsights = ref<boolean[]>([])
 const cardRefs = new Map<number, Element>()
 let observer: IntersectionObserver | null = null
 
@@ -134,10 +134,10 @@ async function loadInsight(questionIndex: number) {
 
     const insight = await apiService.getCrossInsight(matchingQuestion.id, surveyIds.value)
     insights.value[questionIndex] = insight
+    loadingInsights.value[questionIndex] = false
   } catch (error) {
     console.error(`加载问题 ${questionIndex} 的聚合分析失败:`, error)
     message.error(`加载失败: ${(error as Error).message}`)
-  } finally {
     loadingInsights.value[questionIndex] = false
   }
 }
@@ -219,6 +219,11 @@ async function loadQuestions() {
     }
 
     questions.value = commonQuestions
+    
+    // 立即加载所有问题的insights（移除懒加载以确保功能正常工作）
+    for (let i = 0; i < commonQuestions.length; i++) {
+      await loadInsight(i)
+    }
   } catch (error) {
     message.error('加载问题列表失败：' + (error as Error).message)
     console.error('加载问题列表失败：', error)
@@ -228,8 +233,7 @@ async function loadQuestions() {
 }
 
 onMounted(() => {
-  loadQuestions()
-
+  // Set up observer BEFORE loading questions so it's ready when cards render
   observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -245,8 +249,7 @@ onMounted(() => {
     { rootMargin: '100px' }
   )
 
-  // Observe elements that were rendered before this hook
-  cardRefs.forEach(el => observer!.observe(el))
+  loadQuestions()
 })
 
 onBeforeUnmount(() => {
