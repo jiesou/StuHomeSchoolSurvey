@@ -6,12 +6,15 @@
     "test": "deno test -A",
     "db:generate": "npx prisma generate",
     "db:push": "npx prisma db push",
-    "db:migrate": "npx prisma migrate dev"
+    "db:migrate": "npx prisma migrate dev",
+    "db:seed": "deno run -A --env-file prisma/seed.ts"
   },
   "imports": {
     "@oak/oak": "jsr:@oak/oak@^17.1.6",
     "@std/assert": "jsr:@std/assert@^1.0.14", // dev:test
-    "@std/testing": "jsr:@std/testing@^1.0.15" // dev:test
+    "@std/testing": "jsr:@std/testing@^1.0.15", // dev:test
+    "jose": "npm:jose@^6.1.0",
+    "@std/crypto": "jsr:@std/crypto@^1.0.5"
   },
   "nodeModulesDir": "auto"
 }

@@ -1,6 +1,7 @@
 import { Application, Router } from "@oak/oak";
 import { surveyRouter } from "./routes/surveys.ts";
 import { submissionRouter } from "./routes/submissions.ts";
+import { authRouter } from "./routes/auth.ts";
 
 const app = new Application();
 const router = new Router();
@@ -47,6 +48,7 @@ router.get("/health", (ctx) => {
 });
 const apiRouter = new Router();
 apiRouter.prefix("/api");
+apiRouter.use("/auth", authRouter.routes(), authRouter.allowedMethods());
 apiRouter.use("/surveys", surveyRouter.routes(), surveyRouter.allowedMethods());
 apiRouter.use(
   "/submissions",

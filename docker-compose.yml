@@ -19,6 +19,8 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-surveysys}
       PORT: 8000
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_key_at_least_32_characters_long}
+      PASSWORD_SALT: ${PASSWORD_SALT:-your_password_salt_string}
     ports:
       - "8000"
     depends_on:

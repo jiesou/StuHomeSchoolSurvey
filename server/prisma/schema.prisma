@@ -15,10 +15,11 @@ datasource db {
 
 // 用户表
 model User {
-  id        Int    @id @default(autoincrement())
-  name      String @db.VarChar(100)
-  id_number String @unique @db.VarChar(50) // 学号，不用于主键
-  role      Int // 1=学生, 10=老师
+  id        Int     @id @default(autoincrement())
+  name      String  @db.VarChar(100)
+  id_number String  @unique @db.VarChar(50) // 学号，不用于主键
+  role      Int // 1=学生, 10=老师, 20=管理员
+  password  String? @db.VarChar(128) // 密码哈希（仅管理员使用）
 
   // 关联关系
   submissions Submission[]

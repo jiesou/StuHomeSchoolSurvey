@@ -4,6 +4,7 @@
 export enum UserRole {
   STUDENT = 1,
   TEACHER = 10,
+  ADMIN = 20,
 }
 
 // 问题类型枚举

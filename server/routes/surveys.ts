@@ -3,6 +3,7 @@ import { Router, Context, Next } from "@oak/oak";
 import { prisma } from "../db.ts";
 import { CreateSurveyRequest, SurveyListResponse, SurveyResultResponse, Survey, Submission, QuestionInsight, QuestionType, QuestionConfig } from "../types.ts";
 import { cut } from "npm:jieba-wasm";
+import { needAdminAuthorization } from "../middleware/auth.ts";
 
 const surveyRouter = new Router();
 
@@ -125,7 +126,7 @@ surveyRouter.get("/:id", async (ctx) => {
 });
 
 // 创建新问卷
-surveyRouter.post("/", validateSurveyInput, async (ctx) => {
+surveyRouter.post("/", needAdminAuthorization, validateSurveyInput, async (ctx) => {
   try {
     const body = ctx.state.body as CreateSurveyRequest;
 
@@ -159,7 +160,7 @@ surveyRouter.post("/", validateSurveyInput, async (ctx) => {
 });
 
 // 更新问卷
-surveyRouter.put("/:id", validateSurveyInput, async (ctx) => {
+surveyRouter.put("/:id", needAdminAuthorization, validateSurveyInput, async (ctx) => {
   const id = parseInt(ctx.params.id);
   if (!id) {
     ctx.response.status = 400;
@@ -207,7 +208,7 @@ surveyRouter.put("/:id", validateSurveyInput, async (ctx) => {
 });
 
 // 删除问卷
-surveyRouter.delete("/:id", async (ctx) => {
+surveyRouter.delete("/:id", needAdminAuthorization, async (ctx) => {
   const id = parseInt(ctx.params.id);
   if (!id) {
     ctx.response.status = 400;
@@ -231,7 +232,7 @@ surveyRouter.delete("/:id", async (ctx) => {
 });
 
 // 获取问卷结果
-surveyRouter.get("/:id/results", async (ctx) => {
+surveyRouter.get("/:id/results", needAdminAuthorization, async (ctx) => {
   const id = parseInt(ctx.params.id);
   if (!id) {
     ctx.response.status = 400;
@@ -290,7 +291,7 @@ surveyRouter.get("/:id/results", async (ctx) => {
 });
 
 // 获取问卷某个问题的统计洞察
-surveyRouter.get("/:id/insights/:questionId", async (ctx) => {
+surveyRouter.get("/:id/insights/:questionId", needAdminAuthorization, async (ctx) => {
   const id = parseInt(ctx.params.id);
   const questionId = parseInt(ctx.params.questionId);
 
