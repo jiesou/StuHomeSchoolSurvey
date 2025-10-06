@@ -34,6 +34,11 @@ const routes = [
         name: 'SurveyResults',
         component: () => import('../views/admin/SurveyResults.vue'),
         props: true
+      },
+      {
+        path: 'cross-insights',
+        name: 'CrossInsights',
+        component: () => import('../views/admin/CrossInsights.vue')
       }
     ]
   },

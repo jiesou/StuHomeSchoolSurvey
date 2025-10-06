@@ -123,6 +123,30 @@ export interface StarDistributionInsight {
 
 export type QuestionInsight = WordCloudInsight | StarDistributionInsight;
 
+// 跨问卷聚合分析类型
+export interface CrossInsightHistory {
+  survey_id: number;
+  survey_title: string;
+  survey_year: string;
+  survey_semester: number;
+  survey_week: number;
+  survey_created_at: Date;
+  answer_value: string | null;
+}
+
+export interface CrossInsightUser {
+  user_id: number;
+  user_name: string;
+  user_id_number: string;
+  histories: CrossInsightHistory[];
+}
+
+export interface CrossInsightResponse {
+  question_type: QuestionType;
+  question_description: string | null;
+  users: CrossInsightUser[];
+}
+
 // 工具函数类型
 export type AnswerValue<T extends QuestionType> = 
   T extends QuestionType.STAR ? number :
