@@ -2,7 +2,7 @@
   <div class="user-info">
     <a-dropdown v-if="user" placement="bottomRight">
       <a-button type="text">
-        {{ user.name }}
+        你好，{{ user.name }}
       </a-button>
       <template #overlay>
         <a-menu>

@@ -2,13 +2,10 @@
     <a-layout-header class="header-content">
         <h1>家校互联问卷系统</h1>
         <a-space>
-          <a-button type="primary" @click="$router.push('/admin')">
-            问卷列表
-          </a-button>
+          <UserInfo />
           <a-button @click="$router.push('/admin/create')">
             创建问卷
           </a-button>
-          <UserInfo />
         </a-space>
     </a-layout-header>
     

@@ -50,7 +50,7 @@ async function main() {
     create: {
       title: "家校互联满意度问卷",
       description: "本问卷旨在了解学生和家长对学校各方面的满意度，帮助我们改进服务质量。",
-      year: "2024-2025",
+      year: "2025",
       semester: 1,
       week: 1,
       questions: {
