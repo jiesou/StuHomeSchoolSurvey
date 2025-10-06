@@ -136,8 +136,10 @@ function handleTableChange(pag: any) {
   loadSurveys()
 }
 
+const getAdminSecret = () => sessionStorage.getItem('adminSecret') || ''
+
 function viewResults(id: number) {
-  router.push(`/admin/surveys/${id}/results`)
+  router.push(`/admin-${getAdminSecret()}/surveys/${id}/results`)
 }
 
 function copyLink(id: number) {
@@ -163,13 +165,13 @@ function handleMenuClick(e: any, record: Survey) {
 function cloneSurvey(survey: Survey) {
   // 通过 router state 传递问卷数据
   router.push({
-    path: '/admin/create',
+    path: `/admin-${getAdminSecret()}/create`,
     state: { cloneSurvey: JSON.parse(JSON.stringify(survey)) }
   })
 }
 
 function editSurvey(id: number) {
-  router.push(`/admin/edit/${id}`)
+  router.push(`/admin-${getAdminSecret()}/edit/${id}`)
 }
 
 async function deleteSurvey(survey: Survey) {

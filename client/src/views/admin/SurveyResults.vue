@@ -2,7 +2,7 @@
   <div>
     <a-page-header 
       :title="`${survey?.title || '...'}`"
-      @back="$router.push('/admin')"
+      @back="goBack"
     />
     
     <a-descriptions bordered size="small" style="margin-bottom: 24px" :loading="loading">
@@ -31,6 +31,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { apiService } from '../../api'
 import type { Survey } from '../../types'
 import SubmissionsTable from '../../components/SubmissionsTable.vue'
@@ -42,9 +43,16 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const router = useRouter()
 const loading = ref(false)
 const survey = ref<Survey | null>(null)
 const submissionCount = ref(0)
+
+const getAdminSecret = () => sessionStorage.getItem('adminSecret') || ''
+
+const goBack = () => {
+  router.push(`/admin-${getAdminSecret()}`)
+}
 
 async function loadData() {
   loading.value = true

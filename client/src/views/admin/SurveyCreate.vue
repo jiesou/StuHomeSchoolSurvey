@@ -2,7 +2,7 @@
   <div>
     <a-page-header 
       :title="isEditMode ? '编辑问卷' : '创建问卷'" 
-      @back="$router.push('/admin')"
+      @back="goBack"
     />
     
     <a-spin :spinning="loading" tip="加载中...">
@@ -135,7 +135,7 @@
             <a-button type="primary" html-type="submit" :loading="submitting">
               {{ isEditMode ? '保存修改' : '创建问卷' }}
             </a-button>
-            <a-button @click="$router.push('/admin')">
+            <a-button @click="goBack">
               取消
             </a-button>
           </a-space>
@@ -158,6 +158,12 @@ const route = useRoute()
 const formRef = ref()
 const submitting = ref(false)
 const loading = ref(false)
+
+const getAdminSecret = () => sessionStorage.getItem('adminSecret') || ''
+
+const goBack = () => {
+  router.push(`/admin-${getAdminSecret()}`)
+}
 
 // 编辑模式：路由参数中有 id
 const editId = computed(() => {
@@ -211,7 +217,7 @@ async function loadSurvey(id: number) {
     }
   } catch (error) {
     message.error('加载问卷失败：' + (error as Error).message)
-    router.push('/admin')
+    goBack()
   } finally {
     loading.value = false
   }
@@ -275,7 +281,7 @@ async function handleSubmit() {
       await apiService.createSurvey(formData)
       message.success('问卷创建成功')
     }
-    router.push('/admin')
+    goBack()
   } catch (error) {
     message.error((isEditMode.value ? '更新' : '创建') + '失败：' + (error as Error).message)
   } finally {
