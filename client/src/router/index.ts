@@ -1,13 +1,27 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+// 获取管理员密钥
+const getAdminSecret = () => {
+  return sessionStorage.getItem('adminSecret') || import.meta.env.VITE_ADMIN_SECRET || ''
+}
+
 const routes = [
   {
     path: '/',
-    redirect: '/admin'
+    redirect: () => {
+      const secret = getAdminSecret()
+      return `/admin-${secret}`
+    }
   },
   {
-    path: '/admin',
+    path: '/admin-:secret',
     component: () => import('../views/AdminLayout.vue'),
+    beforeEnter: (to: any) => {
+      const secret = to.params.secret
+      if (secret) {
+        sessionStorage.setItem('adminSecret', secret)
+      }
+    },
     children: [
       {
         path: '',

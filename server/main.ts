@@ -1,6 +1,7 @@
 import { Application, Router } from "@oak/oak";
 import { surveyRouter } from "./routes/surveys.ts";
 import { submissionRouter } from "./routes/submissions.ts";
+import { needAdminAuthorization } from "./middleware/auth.ts";
 
 const app = new Application();
 const router = new Router();
@@ -45,20 +46,36 @@ router.get("/health", (ctx) => {
   ctx.response.status = 200;
   ctx.response.body = { status: "ok", timestamp: new Date().toISOString() };
 });
-const apiRouter = new Router();
-apiRouter.prefix("/api");
-apiRouter.use("/surveys", surveyRouter.routes(), surveyRouter.allowedMethods());
-apiRouter.use(
+
+// 公开 API 路由（用于用户填写问卷）
+const publicApiRouter = new Router();
+publicApiRouter.prefix("/api");
+
+// 公开访问：获取单个问卷详情（用于填写）
+publicApiRouter.get("/surveys/:id", async (ctx, next) => {
+  // 转发到 surveyRouter
+  await surveyRouter.routes()(ctx, next);
+});
+
+publicApiRouter.use(
   "/submissions",
   submissionRouter.routes(),
   submissionRouter.allowedMethods(),
 );
 
+// 管理员 API 路由（需要鉴权）
+const adminApiRouter = new Router();
+adminApiRouter.prefix("/api/admin");
+adminApiRouter.use(needAdminAuthorization);
+adminApiRouter.use("/surveys", surveyRouter.routes(), surveyRouter.allowedMethods());
+
 // 注册路由
 app.use(router.routes());
-app.use(apiRouter.routes());
+app.use(adminApiRouter.routes());
+app.use(publicApiRouter.routes());
 app.use(router.allowedMethods());
-app.use(apiRouter.allowedMethods());
+app.use(adminApiRouter.allowedMethods());
+app.use(publicApiRouter.allowedMethods());
 app.use(async (ctx) => {
   try {
     // 尝试提供静态文件

@@ -2,10 +2,10 @@
     <a-layout-header class="header-content">
         <h1>家校互联问卷系统</h1>
         <a-space>
-          <a-button type="primary" @click="$router.push('/admin')">
+          <a-button type="primary" @click="navigateToList">
             问卷列表
           </a-button>
-          <a-button @click="$router.push('/admin/create')">
+          <a-button @click="navigateToCreate">
             创建问卷
           </a-button>
         </a-space>
@@ -17,7 +17,20 @@
 </template>
 
 <script setup lang="ts">
-// 管理端布局组件
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+// 获取当前的 secret
+const getAdminSecret = () => sessionStorage.getItem('adminSecret') || ''
+
+const navigateToList = () => {
+  router.push(`/admin-${getAdminSecret()}`)
+}
+
+const navigateToCreate = () => {
+  router.push(`/admin-${getAdminSecret()}/create`)
+}
 </script>
 
 <style scoped>
