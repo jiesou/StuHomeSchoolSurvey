@@ -10,7 +10,7 @@
     </a-page-header>
 
     <a-spin :spinning="loadingSurveys">
-      <a-space direction="vertical" :size="24" style="width: 100%; padding: 24px;">
+      <a-space direction="vertical" :size="24" style="width: 100%;">
         <a-card 
           v-for="(question, index) in questions" 
           :key="question.id"
@@ -23,8 +23,17 @@
             <template v-if="question.config.type === QuestionType.STAR">
               <Line 
                 :data="getChartData(question.id)" 
-                :options="chartOptions"
-                style="max-height: 400px;"
+                :options="{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { position: 'bottom' },
+                  },
+                  scales: {
+                    y: { beginAtZero: false }
+                  }
+                }"
+                style="min-height: 240px;"
               />
             </template>
 
@@ -81,25 +90,6 @@ const insights = ref<Record<number, CrossInsightResponse>>({})
 const loadingInsights = ref<Record<number, boolean>>({})
 const cardRefs = new Map<number, Element>()
 let observer: IntersectionObserver | null = null
-
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      position: 'top' as const,
-    },
-  },
-  scales: {
-    y: {
-      min: 0,
-      max: 5,
-      ticks: {
-        stepSize: 1
-      }
-    }
-  }
-}
 
 function setCardRef(el: any, questionId: number) {
   const targetEl = el?.$el || el
@@ -201,7 +191,7 @@ function getChartData(questionId: number) {
   })
 
   return {
-    labels: sortedWeeks.map(w => `第${w}周`),
+    labels: sortedWeeks.map(w => `${w}周`),
     datasets
   }
 }
@@ -262,12 +252,6 @@ onMounted(() => {
 
   surveyIds.value = surveysParam.split(',').map(id => parseInt(id)).filter(id => !isNaN(id))
   
-  if (surveyIds.value.length < 2) {
-    message.error('至少需要选择2个问卷')
-    router.back()
-    return
-  }
-
   loadSurveys()
 
   // 设置懒加载观察器

@@ -9,10 +9,14 @@
       font-family="sans-serif"
       style="height: 100%; width: 100%"
     />
-    <div style="position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.9); padding: 8px 12px; border-radius: 4px; font-size: 14px;">
-      第 {{ currentIndex + 1 }} / {{ wordsByWeek.length }} 周
-    </div>
   </div>
+  <a-progress
+    v-if="wordsByWeek.length > 1"
+    :percent="((currentIndex + 1) / wordsByWeek.length) * 100"
+    :steps="wordsByWeek.length"
+    :show-info="false"
+    style="margin-top: 16px;"
+  />
 </template>
 
 <script setup lang="ts">
@@ -38,7 +42,7 @@ onMounted(() => {
   if (props.wordsByWeek.length > 1) {
     intervalId = setInterval(() => {
       currentIndex.value = (currentIndex.value + 1) % props.wordsByWeek.length
-    }, 1000) as unknown as number
+    }, 3000) as unknown as number
   }
 })
 
