@@ -11,7 +11,7 @@
     </a-page-header>
 
     <a-spin :spinning="loadingSurveys">
-      <a-space direction="vertical" :size="24" style="width: 100%;" :style="{ padding: surveyId ? '0' : '24px' }">
+      <a-space direction="vertical" :size="24" style="width: 100%;">
         <a-card 
           v-for="(question, index) in questions" 
           :key="question.id"
@@ -19,7 +19,7 @@
           :title="`${index + 1}. ${question.description}`"
           :loading="loadingInsights[question.id]"
         >
-          <template v-if="insightsState[question.id]?.error">
+         <template v-if="insightsState[question.id]?.error">
             <a-result
               status="warning"
               :title="insightsState[question.id]!.error"
@@ -221,12 +221,15 @@ function getChartData(questionId: number) {
     return {
       label: user.name,
       data,
-      tension: 0.3
+      tension: 0.3,
+      borderColor: `hsl(${(index * 50) % 360}, 80%, 65%)`,
+      backgroundColor: `hsl(${(index * 50) % 360}, 80%, 75%)`,
+      
     }
   })
 
   return {
-    labels: sortedWeeks.map(w => `第${w}周`),
+    labels: sortedWeeks.map(w => `${w}周`),
     datasets
   }
 }

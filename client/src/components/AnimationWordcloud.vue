@@ -1,5 +1,6 @@
 <template>
-  <div style="position: relative; width: 100%; height: 400px;">
+  <a-empty v-if="wordsByWeek.length === 0" />
+  <div v-else style="position: relative; width: 100%; height: 400px;">
     <vue-word-cloud
       :words="currentWords"
       :color="() => {
