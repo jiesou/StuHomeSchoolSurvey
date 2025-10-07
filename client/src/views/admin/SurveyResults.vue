@@ -23,7 +23,7 @@
       </a-tab-pane>
       
       <a-tab-pane key="insights" tab="统计洞察">
-        <CrossInsights v-if="survey" :surveyId="survey.id" />
+        <Insights v-if="survey" :surveyIds="[survey.id]" />
       </a-tab-pane>
     </a-tabs>
   </div>
@@ -34,7 +34,7 @@ import { ref, onMounted } from 'vue'
 import { apiService } from '../../api'
 import type { Survey } from '../../types'
 import SubmissionsTable from '../../components/SubmissionsTable.vue'
-import CrossInsights from './CrossInsights.vue'
+import Insights from '../../components/Insights.vue'
 
 interface Props {
   id: string
