@@ -186,7 +186,9 @@ function getChartData(questionId: number) {
     // 为每个周次找到对应的答案值
     const data = sortedWeeks.map(week => {
       const survey = user.surveys.find(s => s.week === week)
-      return survey ? parseInt(survey.answer_value) : null
+      if (!survey) return null
+      const insight = survey.answer_insight as any
+      return insight.value !== undefined ? insight.value : null
     })
 
     return {
@@ -210,41 +212,33 @@ function getWordsByWeek(questionId: number) {
     return []
   }
 
-  // 按周次分组文本
-  const textByWeek = new Map<number, string[]>()
+  // 按周次分组词云数据
+  const wordsByWeek = new Map<number, Map<string, number>>()
   
   insight.users.forEach(user => {
     user.surveys.forEach(survey => {
-      if (!textByWeek.has(survey.week)) {
-        textByWeek.set(survey.week, [])
+      if (!wordsByWeek.has(survey.week)) {
+        wordsByWeek.set(survey.week, new Map<string, number>())
       }
-      const weekTexts = textByWeek.get(survey.week)
-      if (weekTexts) {
-        weekTexts.push(survey.answer_value)
+      const weekWords = wordsByWeek.get(survey.week)!
+      
+      // 获取该答案的词云 insight
+      const wordcloudInsight = survey.answer_insight as any
+      if (wordcloudInsight.type === 'wordcloud' && wordcloudInsight.words) {
+        wordcloudInsight.words.forEach((word: any) => {
+          const currentWeight = weekWords.get(word.text) || 0
+          weekWords.set(word.text, currentWeight + word.weight)
+        })
       }
     })
   })
 
-  // 为每个周次生成词云（简单分词）
+  // 为每个周次生成最终词云数据
   const result: Array<{ week: number; words: Array<[string, number]> }> = []
   
-  textByWeek.forEach((texts, week) => {
-    const allText = texts.join(' ')
-    
-    // 简单分词：按中文字符和标点分割
-    const words = allText.match(/[\u4e00-\u9fa5]+/g) || []
-    
-    // 统计词频
-    const wordCount = new Map<string, number>()
-    for (const word of words) {
-      // 过滤单字
-      if (word.length > 1) {
-        wordCount.set(word, (wordCount.get(word) || 0) + 1)
-      }
-    }
-    
+  wordsByWeek.forEach((words, week) => {
     // 转换为数组并按频率排序，取前50个
-    const sortedWords = Array.from(wordCount.entries())
+    const sortedWords = Array.from(words.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 50) as [string, number][]
     

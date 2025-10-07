@@ -9,7 +9,7 @@
     >
       <a-empty v-if="!insights[question.id]" />
       <!-- 星级分布 -->
-      <template v-if="question.config.type === QuestionType.STAR && insights[question.id]?.type === 'star'">
+      <template v-if="question.config.type === QuestionType.STAR && (insights[question.id] as any)?.type === 'star'">
         <div style="margin-bottom: 16px">
           <a-statistic 
             title="平均评分" 
@@ -38,7 +38,7 @@
       </template>
       
       <!-- 词云 -->
-      <template v-if="question.config.type === QuestionType.INPUT && insights[question.id]?.type === 'wordcloud'">
+      <template v-if="question.config.type === QuestionType.INPUT && (insights[question.id] as any)?.type === 'wordcloud'">
         <a-empty v-if="(insights[question.id] as WordCloudInsight).words.length === 0" />
         <vue-word-cloud
           v-else

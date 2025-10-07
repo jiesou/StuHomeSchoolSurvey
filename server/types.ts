@@ -121,18 +121,22 @@ export interface StarDistributionInsight {
   total: number;
 }
 
-export type QuestionInsight = WordCloudInsight | StarDistributionInsight;
+export interface StarInsight {
+  value: number;
+}
+
+export type QuestionInsight = WordCloudInsight | StarDistributionInsight | StarInsight;
 
 // 跨问卷分析类型
 export interface UserWithSurveys extends User {
-  surveys: SurveyAnswer[];
+  surveys: SurveysAnswersInsights[];
 }
 
-export interface SurveyAnswer {
+export interface SurveysAnswersInsights {
   survey_id: number;
   week: number;
   created_at: Date;
-  answer_value: string;
+  answer_insight: QuestionInsight;
 }
 
 export interface CrossInsightResponse {

@@ -1,8 +1,9 @@
 // 跨问卷分析的 API 路由
 import { Router } from "@oak/oak";
 import { prisma } from "../db.ts";
-import { CrossInsightResponse, UserWithSurveys, SurveyAnswer } from "../types.ts";
+import { CrossInsightResponse, UserWithSurveys, SurveysAnswersInsights, QuestionInsight, QuestionType } from "../types.ts";
 import { needAdminAuthorization } from "../middleware/auth.ts";
+import { cut } from "npm:jieba-wasm";
 
 const insightsRouter = new Router();
 
@@ -52,7 +53,7 @@ insightsRouter.get("/:questionId", needAdminAuthorization, async (ctx) => {
     }
 
     // 获取第一个问卷的问题作为基准
-    const firstQuestion = questions.find(q => q.survey_id === surveyIds[0]);
+    const firstQuestion = questions.find((q: any) => q.survey_id === surveyIds[0]);
     if (!firstQuestion) {
       ctx.response.status = 404;
       ctx.response.body = { error: "第一个问卷中不存在该问题" };
@@ -76,7 +77,7 @@ insightsRouter.get("/:questionId", needAdminAuthorization, async (ctx) => {
         orderBy: { id: 'asc' }
       });
 
-      const positionInFirstSurvey = allQuestionsInFirstSurvey.findIndex(q => q.id === questionId);
+      const positionInFirstSurvey = allQuestionsInFirstSurvey.findIndex((q: any) => q.id === questionId);
       if (positionInFirstSurvey === -1) {
         ctx.response.status = 400;
         ctx.response.body = { error: "无法确定问题位置" };
@@ -111,7 +112,7 @@ insightsRouter.get("/:questionId", needAdminAuthorization, async (ctx) => {
         orderBy: { id: 'asc' }
       });
 
-      const positionInFirstSurvey = allQuestionsInFirstSurvey.findIndex(q => q.id === questionId);
+      const positionInFirstSurvey = allQuestionsInFirstSurvey.findIndex((q: any) => q.id === questionId);
       const correspondingQuestion = surveyQuestions[positionInFirstSurvey];
       
       if (correspondingQuestion) {
@@ -139,7 +140,7 @@ insightsRouter.get("/:questionId", needAdminAuthorization, async (ctx) => {
       }
     });
 
-    // 按用户分组
+    // 按用户分组并处理 insights
     const userMap = new Map<number, UserWithSurveys>();
     
     for (const answer of allAnswers) {
@@ -156,22 +157,53 @@ insightsRouter.get("/:questionId", needAdminAuthorization, async (ctx) => {
         });
       }
       
+      // 根据问题类型处理 insight
+      let answerInsight: QuestionInsight;
+      
+      if (questionType === QuestionType.STAR) {
+        // 星级类型：直接返回数值
+        answerInsight = {
+          value: parseInt(answer.value)
+        };
+      } else if (questionType === QuestionType.INPUT) {
+        // 文本类型：使用 jieba 分词生成词云
+        const text = answer.value;
+        const words = cut(text, true) as string[];
+        
+        // 统计词频
+        const wordCount = new Map<string, number>();
+        for (const word of words) {
+          // 过滤单字和空白
+          if (word.trim().length > 1) {
+            wordCount.set(word, (wordCount.get(word) || 0) + 1);
+          }
+        }
+        
+        // 转换为数组并按频率排序，取前50个
+        const sortedWords = Array.from(wordCount.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 50) as [string, number][];
+        
+        answerInsight = {
+          type: 'wordcloud',
+          words: sortedWords.map(([text, weight]) => ({ text, weight }))
+        };
+      } else {
+        // 不支持的类型，跳过
+        continue;
+      }
+      
       const userWithSurveys = userMap.get(user.id)!;
       userWithSurveys.surveys.push({
         survey_id: survey.id,
         week: survey.week,
         created_at: survey.created_at,
-        answer_value: answer.value
+        answer_insight: answerInsight
       });
     }
 
     // 取前10个用户
     const users = Array.from(userMap.values()).slice(0, 10);
-
-    // 为每个用户的 surveys 按 week 排序
-    users.forEach(user => {
-      user.surveys.sort((a, b) => a.week - b.week);
-    });
 
     const response: CrossInsightResponse = {
       questionType,
