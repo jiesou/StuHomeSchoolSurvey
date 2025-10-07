@@ -19,6 +19,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+// @ts-ignore
 import VueWordCloud from 'vuewordcloud'
 import type { CrossInsightResponse } from '../types'
 
@@ -35,6 +36,7 @@ let intervalId: number | null = null
 const currentSurveyInfo = computed(() => {
   if (props.insight.surveys.length === 0) return ''
   const survey = props.insight.surveys[currentIndex.value]
+  if (!survey) return ''
   return `${survey.year} 第${survey.semester === 1 ? '一' : '二'}学期 第${survey.week}周`
 })
 
@@ -45,8 +47,9 @@ const currentWords = computed(() => {
 
   // 获取当前问卷索引对应的所有用户的回答
   props.insight.users.forEach(userData => {
-    if (userData.histories[currentIndex.value]) {
-      const answer = userData.histories[currentIndex.value].answer_value
+    const history = userData.histories[currentIndex.value]
+    if (history) {
+      const answer = history.answer_value
       if (answer && answer.trim()) {
         // 简单分词：按空格、标点分割
         const terms = answer.split(/[\s，。！？、；：""''（）【】\[\],.!?;:()\-]+/)

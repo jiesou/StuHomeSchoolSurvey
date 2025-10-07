@@ -89,9 +89,9 @@ const pagination = ref({
 })
 
 const rowSelection = {
-  selectedRowKeys: selectedRowKeys,
-  onChange: (keys: number[]) => {
-    selectedRowKeys.value = keys
+  selectedRowKeys: selectedRowKeys.value,
+  onChange: (keys: (string | number)[]) => {
+    selectedRowKeys.value = keys.map(k => typeof k === 'number' ? k : parseInt(k))
   }
 }
 

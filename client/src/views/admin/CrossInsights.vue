@@ -116,7 +116,12 @@ async function loadBaseSurvey() {
     }
 
     // 加载第一个问卷作为基准
-    baseSurvey.value = await apiService.getSurvey(surveyIds.value[0])
+    const firstSurveyId = surveyIds.value[0]
+    if (!firstSurveyId) {
+      message.error('无效的问卷ID')
+      return
+    }
+    baseSurvey.value = await apiService.getSurvey(firstSurveyId)
     questions.value = baseSurvey.value.questions || []
   } catch (error) {
     message.error('加载问卷失败：' + (error as Error).message)
@@ -125,7 +130,7 @@ async function loadBaseSurvey() {
 
 async function loadInsight(questionIndex: number) {
   const question = questions.value[questionIndex]
-  if (!question || loadingInsights.value[questionIndex] || insights.value[questionIndex]) {
+  if (!question || !question.id || loadingInsights.value[questionIndex] || insights.value[questionIndex]) {
     return
   }
 
@@ -178,7 +183,7 @@ function getChartData(insight: CrossInsightResponse) {
 }
 
 watch(activeKeys, (newKeys) => {
-  if (newKeys.length > 0) {
+  if (newKeys.length > 0 && typeof newKeys[0] === 'number') {
     loadInsight(newKeys[0])
   }
 })
