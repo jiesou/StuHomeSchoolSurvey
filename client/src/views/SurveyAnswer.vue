@@ -144,7 +144,7 @@ async function loadSurvey() {
   }
 }
 
-function handleValidateFail({ values, errorFields, outOfDate }) {
+function handleValidateFail({ values, errorFields, outOfDate }: any) {
   message.error('有必填项未填写')
   formRef.value?.scrollToField(errorFields[0].name, { behavior: 'smooth', block: 'center' })
 }

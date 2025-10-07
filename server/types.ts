@@ -110,18 +110,31 @@ export interface SurveyResultResponse {
 
 // 统计洞察相关类型
 export interface WordCloudInsight {
-  type: 'wordcloud';
   words: { text: string; weight: number; color?: string; }[];
 }
 
-export interface StarDistributionInsight {
-  type: 'star';
-  distribution: Record<number, number>; // { star: count }
-  average: number;
-  total: number;
+export interface StarInsight {
+  value: number;
 }
 
-export type QuestionInsight = WordCloudInsight | StarDistributionInsight;
+export type QuestionInsight = WordCloudInsight | StarInsight;
+
+// 跨问卷分析类型
+export interface UserWithSurveys extends User {
+  surveys: SurveysAnswersInsights[];
+}
+
+export interface SurveysAnswersInsights {
+  survey_id: number;
+  week: number;
+  created_at: Date;
+  answer_insight: QuestionInsight;
+}
+
+export interface CrossInsightResponse {
+  questionType: QuestionType;
+  users: UserWithSurveys[];
+}
 
 // 工具函数类型
 export type AnswerValue<T extends QuestionType> = 

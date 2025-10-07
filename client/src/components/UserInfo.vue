@@ -1,7 +1,7 @@
 <template>
   <div class="user-info">
     <a-dropdown v-if="user" placement="bottomRight">
-      <a-button type="text">
+      <a-button type="text" style="color: #fff">
         你好，{{ user.name }}
       </a-button>
       <template #overlay>
