@@ -69,7 +69,7 @@ const columns = computed(() => {
       key: 'name',
       fixed: 'left' as const,
       resizable: true,
-      width: 70
+      width: 80
     },
     {
       title: '学号',

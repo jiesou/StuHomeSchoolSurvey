@@ -211,10 +211,9 @@ async function handleSubmit(values: typeof formState) {
       if (errorMessage.includes('已经提交过')) {
         // 重复提交，显示确认对话框
         Modal.confirm({
-          title: '确认覆盖',
-          content: '您已经提交过这份问卷，是否要覆盖之前的回答？',
+          title: '您已提交过这份问卷',
+          content: '但是您可以覆盖之前的回答',
           okText: '确认覆盖',
-          cancelText: '取消',
           onOk: async () => {
             await handleOverrideSubmit(submitData)
           }
