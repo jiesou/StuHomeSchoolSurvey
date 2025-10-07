@@ -177,24 +177,24 @@ function handleValidateFail({ values, errorFields, outOfDate }: any) {
 async function handleSubmit(values: typeof formState) {
     submitting.value = true
     
+    // 构建答案数组，只包含已回答的问题
+    const answers: { question_id: number; value: string }[] = Object.entries(formState.answers)
+      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+      .map(([id, value]) => ({
+        question_id: parseInt(id),
+        value: String(value)
+      }))
+    
+    const submitData: SubmitAnswersRequest = {
+      survey_id: parseInt(props.id),
+      user: {
+        name: formState.name,
+        id_number: formState.id_number
+      },
+      answers
+    }
+    
     try {
-      // 构建答案数组，只包含已回答的问题
-      const answers: { question_id: number; value: string }[] = Object.entries(formState.answers)
-        .filter(([_, value]) => value !== undefined && value !== null && value !== '')
-        .map(([id, value]) => ({
-          question_id: parseInt(id),
-          value: String(value)
-        }))
-      
-      const submitData: SubmitAnswersRequest = {
-        survey_id: parseInt(props.id),
-        user: {
-          name: formState.name,
-          id_number: formState.id_number
-        },
-        answers
-      }
-      
       await apiService.submitAnswers(submitData)
       
       // 提交成功，清除 LocalStorage 并显示成功弹窗
