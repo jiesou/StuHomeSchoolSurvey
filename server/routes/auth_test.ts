@@ -158,4 +158,42 @@ Deno.test("Authentication - 认证路由测试", async (t) => {
     assertEquals(body.user.id, 2);
     assertEquals(body.user.role, UserRole.ADMIN);
   });
+
+  await t.step("POST /register - 用户已存在应该返回400", async () => {
+    const passwordHash = await hashPassword("admin123");
+    const mockExistingUser = {
+      id: 1,
+      name: "ADMIN",
+      id_number: "ADMIN",
+      role: UserRole.ADMIN,
+      password: passwordHash
+    };
+
+    using findUniqueStub = stub(
+      prisma.user,
+      "findUnique",
+      () => Promise.resolve(mockExistingUser) as any
+    );
+
+    const requestBody = {
+      name: "ADMIN",
+      id_number: "ADMIN",
+      password: "newpassword123"
+    };
+
+    const ctx = testing.createMockContext({
+      path: "/register",
+      method: "POST",
+      headers: [["content-type", "application/json"]],
+      body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
+    });
+
+    const middleware = authRouter.routes();
+    const next = testing.createMockNext();
+    await middleware(ctx, next);
+
+    assertEquals(ctx.response.status, 400);
+    const body = ctx.response.body as any;
+    assertEquals(body.error, "用户已存在");
+  });
 });
