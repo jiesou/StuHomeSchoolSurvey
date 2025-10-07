@@ -618,3 +618,207 @@ Deno.test("POST / - 应该检测无效的问题ID", async () => {
   const body = ctx.response.body as any;
   assertEquals(body.error, "无效的问题ID: 99");
 });
+
+// 测试覆盖提交 - 正常流程
+Deno.test("POST /override - 应该成功覆盖提交记录", async () => {
+  const mockSurvey = {
+    id: 1,
+    title: "测试问卷",
+    description: "测试",
+    year: "2024",
+    semester: 1,
+    week: 1,
+    created_at: new Date(),
+    questions: [
+      {
+        id: 1,
+        survey_id: 1,
+        description: "问题1",
+        config: { type: QuestionType.STAR, maxStars: 5, required: true }
+      },
+      {
+        id: 2,
+        survey_id: 1,
+        description: "问题2",
+        config: { type: QuestionType.INPUT, required: false }
+      }
+    ]
+  };
+
+  const mockUser = {
+    id: 1,
+    name: "张三",
+    id_number: "2023001",
+    role: UserRole.STUDENT
+  };
+
+  const existingSubmission = {
+    id: 1,
+    survey_id: 1,
+    user_id: 1,
+    created_at: new Date(),
+    answers: [
+      {
+        id: 1,
+        question_id: 1,
+        submission_id: 1,
+        value: "3"
+      }
+    ]
+  };
+
+  const updatedSubmission = {
+    id: 1,
+    survey_id: 1,
+    user_id: 1,
+    created_at: new Date(),
+    user: mockUser,
+    answers: [
+      {
+        id: 2,
+        question_id: 1,
+        submission_id: 1,
+        value: "5"
+      },
+      {
+        id: 3,
+        question_id: 2,
+        submission_id: 1,
+        value: "很好"
+      }
+    ]
+  };
+
+  using findUniqueSurveyStub = stub(
+    prisma.survey,
+    "findUnique",
+    () => Promise.resolve(mockSurvey) as any
+  );
+
+  using findUniqueUserStub = stub(
+    prisma.user,
+    "findUnique",
+    () => Promise.resolve(mockUser) as any
+  );
+
+  using findUniqueSubmissionStub = stub(
+    prisma.submission,
+    "findUnique",
+    () => Promise.resolve(existingSubmission) as any
+  );
+
+  using transactionStub = stub(
+    prisma,
+    "$transaction",
+    (callback: any) => callback({
+      answer: {
+        deleteMany: () => Promise.resolve({ count: 1 }),
+        createMany: () => Promise.resolve({ count: 2 })
+      },
+      submission: {
+        findUnique: () => Promise.resolve(updatedSubmission)
+      }
+    }) as any
+  );
+
+  const requestBody = {
+    survey_id: 1,
+    user: {
+      name: "张三",
+      id_number: "2023001"
+    },
+    answers: [
+      { question_id: 1, value: "5" },
+      { question_id: 2, value: "很好" }
+    ]
+  };
+
+  const ctx = testing.createMockContext({
+    path: "/override",
+    method: "POST",
+    headers: [["content-type", "application/json"]],
+    body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
+  });
+
+  const middleware = submissionRouter.routes();
+  const next = testing.createMockNext();
+  await middleware(ctx, next);
+
+  assertEquals(ctx.response.status, 200);
+  const body = ctx.response.body as any;
+  assertExists(body);
+  assertEquals(body.id, 1);
+  assertEquals(body.answers.length, 2);
+});
+
+// 测试覆盖提交 - 未找到已提交记录
+Deno.test("POST /override - 未找到已提交记录时应该返回404", async () => {
+  const mockSurvey = {
+    id: 1,
+    title: "测试问卷",
+    description: "测试",
+    year: "2024",
+    semester: 1,
+    week: 1,
+    created_at: new Date(),
+    questions: [
+      {
+        id: 1,
+        survey_id: 1,
+        description: "问题1",
+        config: { type: QuestionType.STAR, maxStars: 5, required: true }
+      }
+    ]
+  };
+
+  const mockUser = {
+    id: 1,
+    name: "张三",
+    id_number: "2023001",
+    role: UserRole.STUDENT
+  };
+
+  using findUniqueSurveyStub = stub(
+    prisma.survey,
+    "findUnique",
+    () => Promise.resolve(mockSurvey) as any
+  );
+
+  using findUniqueUserStub = stub(
+    prisma.user,
+    "findUnique",
+    () => Promise.resolve(mockUser) as any
+  );
+
+  using findUniqueSubmissionStub = stub(
+    prisma.submission,
+    "findUnique",
+    () => Promise.resolve(null) as any
+  );
+
+  const requestBody = {
+    survey_id: 1,
+    user: {
+      name: "张三",
+      id_number: "2023001"
+    },
+    answers: [
+      { question_id: 1, value: "5" }
+    ]
+  };
+
+  const ctx = testing.createMockContext({
+    path: "/override",
+    method: "POST",
+    headers: [["content-type", "application/json"]],
+    body: ReadableStream.from([new TextEncoder().encode(JSON.stringify(requestBody))]),
+  });
+
+  const middleware = submissionRouter.routes();
+  const next = testing.createMockNext();
+  await middleware(ctx, next);
+
+  assertEquals(ctx.response.status, 404);
+  const body = ctx.response.body as any;
+  assertEquals(body.error, "没有找到已提交的问卷记录");
+});

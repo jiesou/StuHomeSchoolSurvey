@@ -82,6 +82,14 @@ class ApiService {
     })
   }
 
+  // 覆盖提交问卷答案
+  async submitOverride(data: SubmitAnswersRequest): Promise<any> {
+    return this.request('submissions/override', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
   // 获取问题统计洞察
   async getQuestionInsight(surveyId: number, questionId: number): Promise<QuestionInsight> {
     return this.request<QuestionInsight>(`surveys/${surveyId}/insights/${questionId}`)
