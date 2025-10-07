@@ -14,6 +14,7 @@ COPY client/ ./client/
 RUN cd client && deno task build
 RUN ln -s /app/client/dist /app/server/public
 COPY server/ ./server/
+RUN cd server && deno task db:generate
 
 EXPOSE 8000
 

@@ -1,11 +1,26 @@
 <template>
   <div>
-    <a-page-header title="问卷列表" />
+    <a-page-header title="问卷列表">
+      <template #extra>
+        <a-button 
+          type="primary" 
+          :disabled="selectedRowKeys.length < 2"
+          @click="viewCrossInsights"
+        >
+          聚合分析 ({{ selectedRowKeys.length }})
+        </a-button>
+      </template>
+    </a-page-header>
 
-    <div style="overflow-x: auto;">
-      <a-table :dataSource="surveys" :columns="columns" :pagination="pagination" :loading="loading"
-        :style="{ minWidth: '800px' }"
-        @change="handleTableChange" rowKey="id">
+    <a-table 
+      :dataSource="surveys" 
+      :columns="columns"
+      :pagination="pagination"
+      :loading="loading"
+      :scroll="{ x: 'max-content' }"
+      :row-selection="rowSelection"
+      @change="handleTableChange" 
+      rowKey="id">
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'semester'">
             {{ record.semester === 1 ? '第一学期' : '第二学期' }}
@@ -53,12 +68,11 @@
           </template>
         </template>
       </a-table>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { CopyOutlined, EditOutlined, DeleteOutlined, DownOutlined } from '@ant-design/icons-vue'
@@ -68,6 +82,7 @@ import type { Survey, SurveyListResponse } from '../../types'
 const router = useRouter()
 const loading = ref(false)
 const surveys = ref<Survey[]>([])
+const selectedRowKeys = ref<number[]>([])
 const pagination = ref({
   current: 1,
   pageSize: 10,
@@ -93,11 +108,13 @@ const columns = [
     title: '学期',
     dataIndex: 'semester',
     key: 'semester',
+    width: 70,
   },
   {
     title: '周次',
     dataIndex: 'week',
     key: 'week',
+    width: 70,
   },
   {
     title: '创建时间',
@@ -108,6 +125,7 @@ const columns = [
   {
     title: '操作',
     key: 'actions',
+    width: 300,
   }
 ]
 
@@ -179,7 +197,24 @@ async function deleteSurvey(survey: Survey) {
   }
 }
 
+const rowSelection = computed(() => ({
+  selectedRowKeys: selectedRowKeys.value,
+  onChange: (keys: any[]) => {
+    selectedRowKeys.value = keys as number[]
+  }
+}))
+
+function viewCrossInsights() {
+  router.push({
+    path: '/admin/cross-insights',
+    query: {
+      surveys: selectedRowKeys.value.join(',')
+    }
+  })
+}
+
 onMounted(() => {
   loadSurveys()
 })
 </script>
+

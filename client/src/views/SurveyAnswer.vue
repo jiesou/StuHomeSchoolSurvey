@@ -8,11 +8,11 @@
     <a-card v-else-if="survey" :title="survey.title">
       <template #extra>
         <a-tag color="blue">{{ survey.year }}</a-tag>
-        <a-tag color="green">{{ survey.semester === 1 ? '上学期' : '下学期' }}</a-tag>
+        <a-tag color="green">{{ survey.semester === 1 ? '第一学期' : '第二学期' }}</a-tag>
         <a-tag>第{{ survey.week }}周</a-tag>
       </template>
       
-      <p v-if="survey.description" style="margin-bottom: 24px; color: #666">
+      <p v-if="survey.description" style="margin-bottom: 24px; opacity: 0.65">
         {{ survey.description }}
       </p>
       
@@ -20,6 +20,7 @@
         :model="formState"
         layout="vertical"
         @finish="handleSubmit"
+        @finishFailed="handleValidateFail"
         ref="formRef"
       >
         <!-- 用户信息 -->
@@ -59,6 +60,8 @@
               v-model:value="formState.answers[question.id]"
               :placeholder="question.config.placeholder || '请输入您的回答'"
               :rows="3"
+              :maxlength="question.config.maxLength"
+              :show-count="!!question.config.maxLength"
             />
           </a-form-item>
         </div>
@@ -77,32 +80,12 @@
       title="问卷不存在"
       sub-title="请检查问卷链接是否正确"
     />
-    
-    <!-- 提交成功对话框 -->
-    <a-modal
-      v-model:open="showSuccessModal"
-      title="提交成功"
-      :footer="null"
-      :closable="false"
-    >
-      <a-result
-        status="success"
-        title="问卷提交成功"
-        sub-title="感谢您的参与！"
-      >
-        <template #extra>
-          <a-button type="primary" @click="showSuccessModal = false">
-            确定
-          </a-button>
-        </template>
-      </a-result>
-    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { message } from 'ant-design-vue'
+import { ref, reactive, onMounted, watch } from 'vue'
+import { message, Modal } from 'ant-design-vue'
 import { apiService } from '../api'
 import type { Survey, SubmitAnswersRequest, QuestionType, AnswerValue } from '../types'
 
@@ -115,9 +98,10 @@ const props = defineProps<Props>()
 const loading = ref(false)
 const submitting = ref(false)
 const survey = ref<Survey | null>(null)
-const showSuccessModal = ref(false)
 const formRef = ref()
 
+// LocalStorage key
+const getStorageKey = () => `survey_answer_${props.id}`
 
 const formState = reactive<{
   name: string;
@@ -129,10 +113,54 @@ const formState = reactive<{
   answers: {}
 })
 
+// 从 LocalStorage 加载状态
+function loadFormStateFromStorage() {
+  try {
+    const saved = localStorage.getItem(getStorageKey())
+    if (saved) {
+      const data = JSON.parse(saved)
+      formState.name = data.name || ''
+      formState.id_number = data.id_number || ''
+      formState.answers = data.answers || {}
+    }
+  } catch (error) {
+    console.error('加载保存的表单数据失败：', error)
+  }
+}
+
+// 保存状态到 LocalStorage
+function saveFormStateToStorage() {
+  try {
+    localStorage.setItem(getStorageKey(), JSON.stringify({
+      name: formState.name,
+      id_number: formState.id_number,
+      answers: formState.answers
+    }))
+  } catch (error) {
+    console.error('保存表单数据失败：', error)
+  }
+}
+
+// 清除 LocalStorage
+function clearFormStateFromStorage() {
+  try {
+    localStorage.removeItem(getStorageKey())
+  } catch (error) {
+    console.error('清除保存的表单数据失败：', error)
+  }
+}
+
+// 监听表单状态变化，自动保存
+watch(formState, () => {
+  saveFormStateToStorage()
+}, { deep: true })
+
 async function loadSurvey() {
   loading.value = true
   try {
     survey.value = await apiService.getSurvey(parseInt(props.id))
+    // 问卷加载后，从 LocalStorage 加载已保存的表单数据
+    loadFormStateFromStorage()
   } catch (error) {
     message.error('加载问卷失败：' + (error as Error).message)
     console.error('加载问卷失败：', error)
@@ -141,12 +169,12 @@ async function loadSurvey() {
   }
 }
 
-async function handleSubmit() {
-  try {
-    await formRef.value.validate()
-    
-    if (!survey.value) return
-    
+function handleValidateFail({ values, errorFields, outOfDate }: any) {
+  message.error('有必填项未填写')
+  formRef.value?.scrollToField(errorFields[0].name, { behavior: 'smooth', block: 'center' })
+}
+
+async function handleSubmit(values: typeof formState) {
     submitting.value = true
     
     // 构建答案数组，只包含已回答的问题
@@ -166,16 +194,57 @@ async function handleSubmit() {
       answers
     }
     
-    await apiService.submitAnswers(submitData)
-    showSuccessModal.value = true
-  } catch (error) {
-    const errorMessage = (error as Error).message
-    if (errorMessage.includes('已经提交过')) {
-      message.warning('您已经提交过这份问卷，不能重复提交')
-    } else {
-      message.error('提交失败：' + errorMessage)
+    try {
+      await apiService.submitAnswers(submitData)
+      
+      // 提交成功，清除 LocalStorage 并显示成功弹窗
+      clearFormStateFromStorage()
+      Modal.success({
+        title: '提交成功',
+        content: '感谢您的参与！',
+        onOk() {
+          // 可以在这里添加跳转逻辑
+        }
+      })
+    } catch (error: any) {
+      const errorMessage = error.message || String(error)
+      if (errorMessage.includes('已经提交过')) {
+        // 重复提交，显示确认对话框
+        Modal.confirm({
+          title: '您已提交过这份问卷',
+          content: '但是您可以覆盖之前的回答',
+          okText: '确认覆盖',
+          onOk: async () => {
+            await handleOverrideSubmit(submitData)
+          }
+        })
+      } else {
+        message.error('提交失败：' + errorMessage)
+      }
+      console.error('提交失败：', error)
+    } finally {
+      submitting.value = false
     }
-    console.error('提交失败：', error)
+}
+
+// 覆盖提交
+async function handleOverrideSubmit(submitData: SubmitAnswersRequest) {
+  try {
+    submitting.value = true
+    await apiService.submitOverride(submitData)
+    
+    // 提交成功，清除 LocalStorage 并显示成功弹窗
+    clearFormStateFromStorage()
+    Modal.success({
+      title: '提交成功',
+      content: '已成功覆盖之前的回答，感谢您的参与！',
+      onOk() {
+        // 可以在这里添加跳转逻辑
+      }
+    })
+  } catch (error: any) {
+    message.error('覆盖提交失败：' + (error.message || String(error)))
+    console.error('覆盖提交失败：', error)
   } finally {
     submitting.value = false
   }
@@ -202,7 +271,6 @@ onMounted(() => {
 .question-item {
   margin-bottom: 24px;
   padding: 16px;
-  background: #fafafa;
   border-radius: 6px;
 }
 

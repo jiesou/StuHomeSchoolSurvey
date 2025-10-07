@@ -1,0 +1,11 @@
+services:
+  server:
+    image: ghcr.io/jiesou/stuhomeschoolsurvey:main # Specify commit hash
+    # For dev environment:
+    # build:
+    #   context: .
+    # volumes:
+    #   - ./server:/app/server
+    #   - ./client:/app/client
+    ports:
+      - "8080:8000"

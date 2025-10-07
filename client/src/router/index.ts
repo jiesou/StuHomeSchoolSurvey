@@ -6,6 +6,11 @@ const routes = [
     redirect: '/admin'
   },
   {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/Login.vue')
+  },
+  {
     path: '/admin',
     component: () => import('../views/AdminLayout.vue'),
     children: [
@@ -29,6 +34,11 @@ const routes = [
         name: 'SurveyResults',
         component: () => import('../views/admin/SurveyResults.vue'),
         props: true
+      },
+      {
+        path: 'cross-insights',
+        name: 'CrossInsights',
+        component: () => import('../views/admin/CrossInsights.vue')
       }
     ]
   },

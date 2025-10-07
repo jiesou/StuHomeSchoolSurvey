@@ -4,6 +4,7 @@
 export enum UserRole {
   STUDENT = 1,
   TEACHER = 10,
+  ADMIN = 20,
 }
 
 // 问题类型枚举
@@ -19,6 +20,7 @@ export interface QuestionConfig {
   maxStars?: number;     // 星级评分最大星数，默认5
   placeholder?: string;  // 文本输入提示
   required?: boolean;    // 是否必填
+  maxLength?: number;    // input 类型最大字符数
 }
 
 // 基础数据类型
@@ -104,6 +106,34 @@ export interface SurveyResultResponse {
   total: number;
   page: number;
   limit: number;
+}
+
+// 统计洞察相关类型
+export interface WordCloudInsight {
+  words: { text: string; weight: number; color?: string; }[];
+}
+
+export interface StarInsight {
+  value: number;
+}
+
+export type QuestionInsight = WordCloudInsight | StarInsight;
+
+// 跨问卷分析类型
+export interface UserWithSurveys extends User {
+  surveys: SurveysAnswersInsights[];
+}
+
+export interface SurveysAnswersInsights {
+  survey_id: number;
+  week: number;
+  created_at: Date;
+  answer_insight: QuestionInsight;
+}
+
+export interface CrossInsightResponse {
+  questionType: QuestionType;
+  users: UserWithSurveys[];
 }
 
 // 工具函数类型

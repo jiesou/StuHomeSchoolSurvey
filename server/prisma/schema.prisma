@@ -15,10 +15,11 @@ datasource db {
 
 // 用户表
 model User {
-  id        Int    @id @default(autoincrement())
-  name      String
-  id_number String // 学号，不用于主键
-  role      Int // 1=学生, 10=老师
+  id        Int     @id @default(autoincrement())
+  name      String  @db.VarChar(100)
+  id_number String  @unique @db.VarChar(50) // 学号，不用于主键
+  role      Int // 1=学生, 10=老师, 20=管理员
+  password  String? @db.VarChar(128) // 密码哈希（仅管理员使用）
 
   // 关联关系
   submissions Submission[]
@@ -29,9 +30,9 @@ model User {
 // 问卷表
 model Survey {
   id          Int      @id @default(autoincrement())
-  title       String
-  description String?
-  year        String // 学年，如 "2023-2024"
+  title       String   @db.VarChar(200)
+  description String?  @db.VarChar(1000)
+  year        String   @db.VarChar(20) // 学年，如 "2023-2024"
   semester    Int // 学期：1=上学期, 2=下学期  
   week        Int // 周次
   created_at  DateTime @default(now())
@@ -47,7 +48,7 @@ model Survey {
 model Question {
   id          Int     @id @default(autoincrement())
   survey_id   Int
-  description String?
+  description String? @db.VarChar(500)
   config      Json // JSONB 存储问题配置，包含 type 等信息
 
   // 关联关系
@@ -62,7 +63,7 @@ model Answer {
   id            Int    @id @default(autoincrement())
   question_id   Int
   submission_id Int
-  value         String // 统一存储为字符串，通过 question config 解析类型
+  value         String @db.VarChar(10000) // 统一存储为字符串，通过 question config 解析类型
 
   // 关联关系
   question   Question   @relation(fields: [question_id], references: [id], onDelete: Cascade)
