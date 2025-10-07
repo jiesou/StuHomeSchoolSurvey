@@ -18,14 +18,7 @@ authRouter.post("/register", async (ctx) => {
       return;
     }
 
-    // 验证密码长度
-    if (password.length < 6) {
-      ctx.response.status = 400;
-      ctx.response.body = { error: "密码长度至少为6个字符" };
-      return;
-    }
-
-    // 检查用户是否已存在
+    // 检查用户是否已存在（在验证密码前检查，提高效率）
     const existingUser = await prisma.user.findUnique({
       where: { id_number }
     });
@@ -33,6 +26,13 @@ authRouter.post("/register", async (ctx) => {
     if (existingUser) {
       ctx.response.status = 400;
       ctx.response.body = { error: "用户已存在" };
+      return;
+    }
+
+    // 验证密码长度
+    if (password.length < 6) {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "密码长度至少为6个字符" };
       return;
     }
 

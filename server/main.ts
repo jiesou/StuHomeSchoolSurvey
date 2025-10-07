@@ -26,26 +26,6 @@ app.use(async (ctx, next) => {
   console.log(`[${timestamp}] ${ip} "${method} ${path}" ${status} ${ms}ms`);
 });
 
-// CORS 中间件
-app.use(async (ctx, next) => {
-  ctx.response.headers.set("Access-Control-Allow-Origin", "*");
-  ctx.response.headers.set(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS",
-  );
-  ctx.response.headers.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization",
-  );
-
-  if (ctx.request.method === "OPTIONS") {
-    ctx.response.status = 204;
-    return;
-  }
-
-  await next();
-});
-
 // 错误处理中间件
 app.use(async (ctx, next) => {
   try {

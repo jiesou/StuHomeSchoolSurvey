@@ -3,11 +3,22 @@ import { prisma } from "../db.ts";
 import { hashPassword } from "../auth.ts";
 import { UserRole, QuestionType } from "../types.ts";
 
+// 生成随机密码
+function generateRandomPassword(length = 12): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+}
+
 async function main() {
   console.log("开始播种数据库...");
 
   // 创建管理员账号
-  const adminPassword = await hashPassword("admin123");
+  const adminPasswordPlain = generateRandomPassword();
+  const adminPassword = await hashPassword(adminPasswordPlain);
   const admin = await prisma.user.upsert({
     where: { id_number: "ADMIN" },
     update: {},
@@ -446,7 +457,7 @@ async function main() {
   console.log("播种完成！");
   console.log("\n管理员登录信息:");
   console.log("  账号: ADMIN");
-  console.log("  密码: admin123");
+  console.log("  密码:", adminPasswordPlain);
 }
 
 main()
