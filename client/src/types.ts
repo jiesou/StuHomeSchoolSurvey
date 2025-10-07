@@ -108,6 +108,23 @@ export interface SurveyResultResponse {
   limit: number;
 }
 
+// 跨问卷分析类型
+export interface UserWithSurveys extends User {
+  surveys: SurveyAnswer[];
+}
+
+export interface SurveyAnswer {
+  survey_id: number;
+  week: number;
+  created_at: Date;
+  answer_value: string;
+}
+
+export interface CrossInsightResponse {
+  questionType: QuestionType;
+  users: UserWithSurveys[];
+}
+
 // 统计洞察相关类型
 export interface WordCloudInsight {
   type: 'wordcloud';
