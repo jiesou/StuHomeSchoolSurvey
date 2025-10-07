@@ -205,10 +205,6 @@ const rowSelection = computed(() => ({
 }))
 
 function viewCrossInsights() {
-  if (selectedRowKeys.value.length < 2) {
-    message.warning('请至少选择2个问卷进行聚合分析')
-    return
-  }
   router.push({
     path: '/admin/cross-insights',
     query: {

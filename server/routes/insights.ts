@@ -185,7 +185,6 @@ insightsRouter.get("/:questionId", needAdminAuthorization, async (ctx) => {
           .slice(0, 50) as [string, number][];
         
         answerInsight = {
-          type: 'wordcloud',
           words: sortedWords.map(([text, weight]) => ({ text, weight }))
         };
       } else {

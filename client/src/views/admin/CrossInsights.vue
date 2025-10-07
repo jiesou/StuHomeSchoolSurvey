@@ -1,43 +1,81 @@
 <template>
   <div>
     <a-page-header 
-      title="跨问卷聚合分析" 
+      v-if="!surveyId"
+      :title="surveyIds.length === 1 ? '统计洞察' : '跨问卷聚合分析'" 
       @back="() => router.back()"
     >
       <template #subTitle>
-        已选择 {{ surveyIds.length }} 个问卷
+        <span v-if="surveyIds.length > 1">已选择 {{ surveyIds.length }} 个问卷</span>
       </template>
     </a-page-header>
 
     <a-spin :spinning="loadingSurveys">
-      <a-space direction="vertical" :size="24" style="width: 100%;">
+      <a-space direction="vertical" :size="24" style="width: 100%;" :style="{ padding: surveyId ? '0' : '24px' }">
         <a-card 
           v-for="(question, index) in questions" 
           :key="question.id"
-          :ref="el => setCardRef(el, question.id)"
+          :ref="(el: any) => setCardRef(el, question.id)"
           :title="`${index + 1}. ${question.description}`"
           :loading="loadingInsights[question.id]"
         >
-          <template v-if="insights[question.id]">
-            <!-- 星级问题：折线图 -->
+          <template v-if="insightsState[question.id]?.error">
+            <a-result
+              status="warning"
+              :title="insightsState[question.id]!.error"
+            />
+          </template>
+          <template v-else-if="insightsState[question.id]?.response">
+            <!-- 星级问题 -->
             <template v-if="question.config.type === QuestionType.STAR">
-              <Line 
-                :data="getChartData(question.id)" 
-                :options="{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: { position: 'bottom' },
-                  },
-                  scales: {
-                    y: { beginAtZero: false }
-                  }
-                }"
-                style="min-height: 240px;"
-              />
+              <!-- 单问卷：显示分布统计 -->
+              <template v-if="surveyIds.length === 1">
+                <div style="margin-bottom: 16px">
+                  <a-statistic 
+                    title="平均评分" 
+                    :value="getStarAverage(question.id).toFixed(2)" 
+                    suffix="星"
+                  />
+                  <div style="margin-top: 8px; opacity: 0.65">
+                    共 {{ getStarTotal(question.id) }} 条回答
+                  </div>
+                </div>
+                
+                <a-space direction="vertical" style="width: 100%">
+                  <div 
+                    v-for="star in getStarRange(question.config.maxStars || 5)" 
+                    :key="star"
+                    style="display: flex; align-items: center; gap: 12px"
+                  >
+                    <div style="min-width: 60px">{{ star }}星</div>
+                    <a-progress 
+                      :percent="getStarPercentage(question.id, star)"
+                      :format="(percent: number | undefined) => `${getStarDistribution(question.id)[star] || 0} (${percent}%)`"
+                      style="flex: 1"
+                    />
+                  </div>
+                </a-space>
+              </template>
+              <!-- 多问卷：显示折线图 -->
+              <template v-else>
+                <Line 
+                  :data="getChartData(question.id)" 
+                  :options="{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { position: 'bottom' },
+                    },
+                    scales: {
+                      y: { beginAtZero: false }
+                    }
+                  }"
+                  style="min-height: 240px;"
+                />
+              </template>
             </template>
 
-            <!-- 文本问题：动画词云 -->
+            <!-- 文本问题：词云 -->
             <template v-else-if="question.config.type === QuestionType.INPUT">
               <AnimationWordcloud :wordsByWeek="getWordsByWeek(question.id)" />
             </template>
@@ -79,6 +117,12 @@ ChartJS.register(
   Legend
 )
 
+interface Props {
+  surveyId?: number
+}
+
+const props = defineProps<Props>()
+
 const router = useRouter()
 const route = useRoute()
 
@@ -86,7 +130,10 @@ const surveyIds = ref<number[]>([])
 const loadingSurveys = ref(false)
 const surveys = ref<Survey[]>([])
 const questions = ref<Question[]>([])
-const insights = ref<Record<number, CrossInsightResponse>>({})
+const insightsState = ref<Record<number, { 
+  response?: CrossInsightResponse; 
+  error?: string;
+}>>({})
 const loadingInsights = ref<Record<number, boolean>>({})
 const cardRefs = new Map<number, Element>()
 let observer: IntersectionObserver | null = null
@@ -128,27 +175,31 @@ async function loadSurveys() {
 }
 
 async function loadInsight(questionId: number) {
-  if (insights.value[questionId] || loadingInsights.value[questionId]) {
+  if (insightsState.value[questionId] || loadingInsights.value[questionId]) {
     return
   }
 
   loadingInsights.value[questionId] = true
   try {
     const insight = await apiService.getCrossInsight(questionId, surveyIds.value)
-    insights.value[questionId] = insight
+    insightsState.value[questionId] = { response: insight }
   } catch (error) {
     console.error(`加载问题 ${questionId} 的跨问卷分析失败:`, error)
-    message.error('加载分析失败：' + (error as Error).message)
+    insightsState.value[questionId] = { 
+      error: '加载分析失败：' + (error as Error).message 
+    }
   } finally {
     loadingInsights.value[questionId] = false
   }
 }
 
 function getChartData(questionId: number) {
-  const insight = insights.value[questionId]
-  if (!insight || insight.questionType !== QuestionType.STAR) {
+  const state = insightsState.value[questionId]
+  if (!state?.response || state.response.questionType !== QuestionType.STAR) {
     return { labels: [], datasets: [] }
   }
+
+  const insight = state.response
 
   // 获取所有周次（横轴）
   const weeks = new Set<number>()
@@ -159,48 +210,34 @@ function getChartData(questionId: number) {
 
   // 为每个用户创建一条线
   const datasets = insight.users.map((user, index) => {
-    const colors = [
-      'rgb(255, 99, 132)',
-      'rgb(54, 162, 235)',
-      'rgb(255, 205, 86)',
-      'rgb(75, 192, 192)',
-      'rgb(153, 102, 255)',
-      'rgb(255, 159, 64)',
-      'rgb(201, 203, 207)',
-      'rgb(255, 99, 71)',
-      'rgb(60, 179, 113)',
-      'rgb(106, 90, 205)'
-    ]
-    const color = colors[index % colors.length]
-
     // 为每个周次找到对应的答案值
     const data = sortedWeeks.map(week => {
       const survey = user.surveys.find(s => s.week === week)
       if (!survey) return null
-      const insight = survey.answer_insight as any
-      return insight.value !== undefined ? insight.value : null
+      const answerInsight = survey.answer_insight as any
+      return answerInsight.value !== undefined ? answerInsight.value : null
     })
 
     return {
       label: user.name,
       data,
-      borderColor: color,
-      backgroundColor: color,
       tension: 0.3
     }
   })
 
   return {
-    labels: sortedWeeks.map(w => `${w}周`),
+    labels: sortedWeeks.map(w => `第${w}周`),
     datasets
   }
 }
 
 function getWordsByWeek(questionId: number) {
-  const insight = insights.value[questionId]
-  if (!insight || insight.questionType !== QuestionType.INPUT) {
+  const state = insightsState.value[questionId]
+  if (!state?.response || state.response.questionType !== QuestionType.INPUT) {
     return []
   }
+
+  const insight = state.response
 
   // 按周次分组词云数据
   const wordsByWeek = new Map<number, Map<string, number>>()
@@ -214,7 +251,7 @@ function getWordsByWeek(questionId: number) {
       
       // 获取该答案的词云 insight
       const wordcloudInsight = survey.answer_insight as any
-      if (wordcloudInsight.type === 'wordcloud' && wordcloudInsight.words) {
+      if (wordcloudInsight.words) {
         wordcloudInsight.words.forEach((word: any) => {
           const currentWeight = weekWords.get(word.text) || 0
           weekWords.set(word.text, currentWeight + word.weight)
@@ -241,16 +278,101 @@ function getWordsByWeek(questionId: number) {
   return result
 }
 
-onMounted(() => {
-  // 解析 URL 参数
-  const surveysParam = route.query.surveys as string
-  if (!surveysParam) {
-    message.error('缺少问卷参数')
-    router.back()
-    return
+// 单问卷模式下的星级统计函数
+function getStarDistribution(questionId: number): Record<number, number> {
+  const state = insightsState.value[questionId]
+  if (!state?.response || surveyIds.value.length !== 1) return {}
+  
+  const distribution: Record<number, number> = {}
+  const question = questions.value.find((q: any) => q.id === questionId)
+  const maxStars = question?.config?.maxStars || 5
+  
+  // 初始化分布
+  for (let i = 0; i <= maxStars; i++) {
+    distribution[i] = 0
   }
+  
+  // 统计分布
+  state.response.users.forEach(user => {
+    user.surveys.forEach(survey => {
+      const answerInsight = survey.answer_insight as any
+      if (answerInsight && answerInsight.value !== undefined) {
+        const star = answerInsight.value
+        if (distribution[star] !== undefined && star >= 0 && star <= maxStars) {
+          distribution[star]++
+        }
+      }
+    })
+  })
+  
+  return distribution
+}
 
-  surveyIds.value = surveysParam.split(',').map(id => parseInt(id)).filter(id => !isNaN(id))
+function getStarAverage(questionId: number): number {
+  const state = insightsState.value[questionId]
+  if (!state?.response || surveyIds.value.length !== 1) return 0
+  
+  let sum = 0
+  let count = 0
+  
+  state.response.users.forEach(user => {
+    user.surveys.forEach(survey => {
+      const answerInsight = survey.answer_insight as any
+      if (answerInsight.value !== undefined) {
+        sum += answerInsight.value
+        count++
+      }
+    })
+  })
+  
+  return count > 0 ? sum / count : 0
+}
+
+function getStarTotal(questionId: number): number {
+  const state = insightsState.value[questionId]
+  if (!state?.response || surveyIds.value.length !== 1) return 0
+  
+  let count = 0
+  state.response.users.forEach(user => {
+    user.surveys.forEach(survey => {
+      const answerInsight = survey.answer_insight as any
+      if (answerInsight.value !== undefined) {
+        count++
+      }
+    })
+  })
+  
+  return count
+}
+
+function getStarRange(maxStars: number): number[] {
+  return Array.from({ length: maxStars + 1 }, (_, i) => maxStars - i)
+}
+
+function getStarPercentage(questionId: number, star: number): number {
+  const distribution = getStarDistribution(questionId)
+  const total = getStarTotal(questionId)
+  if (total === 0) return 0
+  
+  const count = distribution[star] || 0
+  return Math.round((count / total) * 100)
+}
+
+onMounted(() => {
+  // 如果是通过 prop 传入单个 surveyId
+  if (props.surveyId) {
+    surveyIds.value = [props.surveyId]
+  } else {
+    // 解析 URL 参数
+    const surveysParam = route.query.surveys as string
+    if (!surveysParam) {
+      message.error('缺少问卷参数')
+      router.back()
+      return
+    }
+
+    surveyIds.value = surveysParam.split(',').map(id => parseInt(id)).filter(id => !isNaN(id))
+  }
   
   loadSurveys()
 
