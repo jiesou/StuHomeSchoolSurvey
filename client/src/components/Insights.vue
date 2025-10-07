@@ -168,7 +168,7 @@ async function loadInsight(questionId: number) {
   } catch (error) {
     console.error(`加载问题 ${questionId} 的跨问卷分析失败:`, error)
     insightsState.value[questionId] = { 
-      error: '加载分析失败：' + (error as Error).message,
+      error: '分析失败：' + (error as Error).message,
       loading: false
     }
   }
@@ -202,12 +202,14 @@ function getChartData(questionId: number) {
     return {
       label: user.name,
       data,
-      tension: 0.3
+      tension: 0.3,
+      borderColor: `hsl(${(index * 137.5) % 360}, 70%, 60%)`,
+      backgroundColor: `hsl(${(index * 137.5) % 360}, 70%, 80%)`,
     }
   })
 
   return {
-    labels: sortedWeeks.map(w => `第${w}周`),
+    labels: sortedWeeks.map(w => `${w}周`),
     datasets
   }
 }

@@ -10,7 +10,7 @@
     </a-page-header>
 
     <div style="padding: 24px;">
-      <Insights :surveyIds="surveyIds" />
+      <Insights v-if="surveyIds.length > 0" :surveyIds="surveyIds" />
     </div>
   </div>
 </template>
