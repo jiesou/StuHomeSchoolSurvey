@@ -141,15 +141,6 @@ function saveFormStateToStorage() {
   }
 }
 
-// 清除 LocalStorage
-function clearFormStateFromStorage() {
-  try {
-    localStorage.removeItem(getStorageKey())
-  } catch (error) {
-    console.error('清除保存的表单数据失败：', error)
-  }
-}
-
 // 监听表单状态变化，自动保存
 watch(formState, () => {
   saveFormStateToStorage()
@@ -197,8 +188,6 @@ async function handleSubmit(values: typeof formState) {
     try {
       await apiService.submitAnswers(submitData)
       
-      // 提交成功，清除 LocalStorage 并显示成功弹窗
-      clearFormStateFromStorage()
       Modal.success({
         title: '提交成功',
         content: '感谢您的参与！',
@@ -233,8 +222,6 @@ async function handleOverrideSubmit(submitData: SubmitAnswersRequest) {
     submitting.value = true
     await apiService.submitOverride(submitData)
     
-    // 提交成功，清除 LocalStorage 并显示成功弹窗
-    clearFormStateFromStorage()
     Modal.success({
       title: '提交成功',
       content: '已成功覆盖之前的回答，感谢您的参与！',
