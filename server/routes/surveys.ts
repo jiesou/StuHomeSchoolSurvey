@@ -1,8 +1,7 @@
 // 问卷相关的 API 路由
 import { Router, Context, Next } from "@oak/oak";
 import { prisma } from "../db.ts";
-import { CreateSurveyRequest, SurveyListResponse, SurveyResultResponse, Survey, Submission, QuestionInsight, QuestionType, QuestionConfig } from "../types.ts";
-import { cut } from "npm:jieba-wasm";
+import { CreateSurveyRequest, SurveyListResponse, SurveyResultResponse, Survey, Submission, QuestionConfig } from "../types.ts";
 import { needAdminAuthorization } from "../middleware/auth.ts";
 
 const surveyRouter = new Router();

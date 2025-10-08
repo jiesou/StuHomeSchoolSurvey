@@ -29,6 +29,7 @@
     "npm:jieba-wasm@^2.4.0": "2.4.0",
     "npm:jose@^6.1.0": "6.1.0",
     "npm:path-to-regexp@^6.3.0": "6.3.0",
+    "npm:prisma@*": "6.16.3",
     "npm:prisma@6.16.3": "6.16.3",
     "npm:prisma@^6.16.3": "6.16.3",
     "npm:vue-chartjs@^5.3.2": "5.3.2_chart.js@4.5.0_vue@3.5.22"

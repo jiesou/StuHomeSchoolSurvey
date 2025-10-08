@@ -113,15 +113,27 @@ const formState = reactive<{
   answers: {}
 })
 
-// 从 LocalStorage 加载状态
+// 从 LocalStorage 加载状态，但只加载当前问卷中存在的问题答案
 function loadFormStateFromStorage() {
   try {
     const saved = localStorage.getItem(getStorageKey())
-    if (saved) {
+    if (saved && survey.value?.questions) {
       const data = JSON.parse(saved)
       formState.name = data.name || ''
       formState.id_number = data.id_number || ''
-      formState.answers = data.answers || {}
+      
+      // 只加载当前问卷中实际存在的问题答案
+      const validQuestionIds = new Set(survey.value.questions.map(q => q.id))
+      const savedAnswers = data.answers || {}
+      formState.answers = {}
+      
+      // 过滤掉不再存在的问题ID
+      Object.entries(savedAnswers).forEach(([questionId, value]) => {
+        const id = parseInt(questionId)
+        if (validQuestionIds.has(id)) {
+          formState.answers[id] = value as AnswerValue<QuestionType>
+        }
+      })
     }
   } catch (error) {
     console.error('加载保存的表单数据失败：', error)
@@ -152,6 +164,20 @@ async function loadSurvey() {
     survey.value = await apiService.getSurvey(parseInt(props.id))
     // 问卷加载后，从 LocalStorage 加载已保存的表单数据
     loadFormStateFromStorage()
+    
+    // 清理 formState.answers 中不再存在的问题ID
+    if (survey.value?.questions) {
+      const validQuestionIds = new Set(survey.value.questions.map(q => q.id))
+      const currentAnswers = { ...formState.answers }
+      formState.answers = {}
+      
+      Object.entries(currentAnswers).forEach(([questionId, value]) => {
+        const id = parseInt(questionId)
+        if (validQuestionIds.has(id)) {
+          formState.answers[id] = value
+        }
+      })
+    }
   } catch (error) {
     message.error('加载问卷失败：' + (error as Error).message)
     console.error('加载问卷失败：', error)
